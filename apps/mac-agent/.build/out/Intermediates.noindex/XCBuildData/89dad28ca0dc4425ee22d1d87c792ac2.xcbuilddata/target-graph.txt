@@ -1,4 +1,0 @@
-Target dependency graph (2 targets)
-Target 'AllExcludingTests' in project 'Aggregate'
-➜ Explicit dependency on target 'nexus-agent-product' in project 'NEXUSAgent'
-Target 'nexus-agent-product' in project 'NEXUSAgent' (no dependencies)
