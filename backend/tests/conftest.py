@@ -3,7 +3,14 @@ from collections.abc import AsyncGenerator
 import pytest
 from httpx import ASGITransport, AsyncClient
 
+from app.core.database import engine
 from app.main import app
+
+
+@pytest.fixture(autouse=True)
+async def cleanup_connections() -> AsyncGenerator[None, None]:
+    yield
+    await engine.dispose()
 
 
 @pytest.fixture

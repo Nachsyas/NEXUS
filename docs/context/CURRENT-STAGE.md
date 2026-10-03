@@ -1,30 +1,32 @@
-# CURRENT STAGE: Governance Corrective Review / Pre-M0
+# CURRENT STAGE: Milestone M0 Completion & Verification
 
-**Current Stage:** Governance Corrective Review / Pre-M0  
-**Phase:** Phase 0 (Governance Bootstrap)  
-**Production NEXUS Implementation:** NOT STARTED  
-**Pre-existing Xcode Scaffold:** PRESENT (`Untitled Project.xcodeproj` & `MyApp/` di root; belum dimigrasikan ke `apps/ios/`)  
-**M0 Status:** BLOCKED UNTIL GOVERNANCE CORRECTIVE PASS IS VERIFIED  
+**Current Stage:** Milestone M0 (Foundation) — COMPLETE  
+**Phase:** Phase 1 (Foundation & Core Skeleton)  
+**Production NEXUS Implementation:** M0 Bedrock Established  
+**Next Stage:** Milestone M1 (Account & Identity Foundation) — PENDING AUTHORIZATION  
+**M0 Status:** COMPLETED AND VERIFIED  
 
 ---
 
-## 1. Sasaran Tahap Korektif (Corrective Objectives)
-Melakukan perbaikan komprehensif terhadap dokumen tata kelola berdasarkan hasil audit eksternal, memastikan tidak ada klaim kelulusan yang prematur, membersihkan asumsi sepihak yang belum disetujui, dan melengkapi kontrak data serta API sesuai baseline resmi.
+## 1. Stage Objectives & Accomplishments
+Milestone M0 established the foundational engineering bedrock across iOS, macOS Agent, Backend, Infrastructure, and CI.
 
-## 2. Kriteria Penerimaan Evaluasi Korektif (Acceptance Checklist)
-- [x] **Internal Links Portability:** Seluruh tautan absolut `file:///` dan path mesin lokal telah dihapus dan diganti dengan tautan relatif repositori. 0 active Markdown repository links using file:/// remain.
-- [x] **Production Code Factual Claim:** Pernyataan "0 production files" telah dikoreksi dengan penjelasan jujur mengenai scaffold bawaan awal Xcode yang belum dimigrasi.
-- [x] **Repository Structure Claim:** Struktur repositori mencatat bahwa scaffold Xcode awal masih berada di root dan akan dimigrasikan/direname pada M0 Foundation.
-- [x] **API Contract Completeness:** Kontrak REST API v1 didokumentasikan lengkap mencakup 60 endpoint yang disetujui di 13 domain (59 core + 1 convenience endpoint).
-- [x] **Database Conceptual Contract:** Kontrak data konseptual mencakup 19 entitas di 9 domain dengan pemisahan semantik mutlak (ADR-012) dan UTC timestamps.
-- [x] **Removal of Unapproved Decisions:** Asumsi PostgreSQL 16+, Pydantic V2, Ed25519 locked, TTL 5 menit, Heartbeat 30s/60s, SSE, HNSW/<80ms telah dibersihkan dari teks locked.
-- [x] **TBD Expansion:** TBD-020 hingga TBD-026 ditambahkan secara resmi ke `docs/architecture/TBD-REGISTRY.md`.
-- [x] **Measurement-First Performance:** Budget performa diperbaiki ke prinsip Measurement-First (Baseline: NOT MEASURED, Target: TBD AFTER BASELINE), mempertahankan approved iOS storage guideline.
-- [x] **Permission Policy Demoted:** Matriks izin per-capability dialihkan ke PROPOSED / TBD-023; arbitrary shell tetap mutlak DENY.
-- [x] **CI Configuration Corrected:** CI workflow disesuaikan menjadi validasi tata kelola murni tanpa pemilihan runtime/tooling Python prematur.
-- [x] **Stage Completion Gate Alignment:** SOP-12 dan skill `stage-close` diperluas penuh memuat seluruh 22 butir kriteria completion gate faktual (12 berkas stage total: 1 README orientasi + 11 artefak bukti).
-- [x] **Consistency Matrix Re-evaluated:** `docs/validation/CONSISTENCY-MATRIX.md` mencerminkan evaluasi faktual riil.
-- [x] **Real Verification Report:** Laporan verifikasi faktual nyata tersedia di repositori (`bootstrap_report.md` dan `docs/validation/GOVERNANCE-BOOTSTRAP-REPORT.md`).
+### Completed Deliverables:
+- [x] **ADR & Tooling Resolution:** Resolved TBD-013, TBD-014, TBD-015, TBD-026 with ADR-016 through ADR-019.
+- [x] **iOS Project Migration:** Migrated starter scaffold to `apps/ios/NEXUS.xcodeproj`, configured target `NEXUS`, verified builds and launch on macOS and iOS Simulator.
+- [x] **Root Directory Hygiene:** Safely removed obsolete `Untitled Project.xcodeproj` and `MyApp/` directories.
+- [x] **Mac Agent Skeleton:** Implemented native Swift executable in `apps/mac-agent/` with capability/security boundary protocols. Verified build and execution.
+- [x] **FastAPI Backend Skeleton:** Modular Monolith initialized with `uv`, request correlation (`X-Request-ID`), structured JSON logging with sensitive data redaction, SQLAlchemy async engine, Redis client manager, and technical health endpoints.
+- [x] **Local Infrastructure:** Docker Compose setup for PostgreSQL 16 (pgvector) and Redis 7 on conflict-free ports (5433/6380). Initialized Alembic and applied baseline schema migration (`0001_baseline_schema`).
+- [x] **Backend Testing & Quality:** Ruff check, Ruff format, Mypy strict mode, and Pytest suite (8/8 passing).
+- [x] **Shared Packages:** Contract directories and READMEs established in `packages/protocols/`, `packages/schemas/`, `packages/constants/`.
+- [x] **CI Pipeline & Tooling:** Updated `.github/workflows/ci.yml` and provided developer automation scripts (`scripts/dev-up.sh`, `scripts/dev-down.sh`, `scripts/run-tests.sh`).
+- [x] **Stage Documentation:** All 12 files completed in `docs/stages/M0-foundation/`.
 
-## 3. Kondisi Pemblokir (Blockers)
-Pengerjaan Milestone M0 (Foundation) **DIBLOKIR** sampai pengguna meninjau dan memberikan persetujuan formal terhadap laporan tata kelola korektif ini.
+---
+
+## 2. Gate Verification Status
+All 22 items of the Milestone M0 Completion Gate checklist (SOP-12) have been verified and passed.
+
+## 3. Boundary & Stop Condition
+Execution stops here at the M0 milestone boundary. Milestone M1 (Account & Identity) requires explicit user authorization before starting.

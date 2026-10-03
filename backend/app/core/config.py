@@ -18,12 +18,13 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
 
     # Database Configuration (PostgreSQL 16 + pgvector)
+    # Default host port 5433 avoids collision with local host PostgreSQL
     DATABASE_URL: str = Field(
-        default="postgresql+asyncpg://nexus:nexus@localhost:5432/nexus_dev",
+        default="postgresql+asyncpg://nexus:nexus@localhost:5433/nexus_dev",
         description="Async PostgreSQL connection string for application runtime",
     )
     DATABASE_URL_SYNC: str = Field(
-        default="postgresql+psycopg://nexus:nexus@localhost:5432/nexus_dev",
+        default="postgresql+psycopg://nexus:nexus@localhost:5433/nexus_dev",
         description="Sync PostgreSQL connection string for Alembic migrations",
     )
     DB_POOL_SIZE: int = 10
@@ -31,8 +32,9 @@ class Settings(BaseSettings):
     DB_POOL_TIMEOUT: float = 30.0
 
     # Ephemeral / Presence Configuration (Redis 7)
+    # Default host port 6380 avoids collision with local host Redis
     REDIS_URL: str = Field(
-        default="redis://localhost:6379/0",
+        default="redis://localhost:6380/0",
         description="Redis connection string for caching, rate limiting, and presence",
     )
 

@@ -1,48 +1,39 @@
 # CONTINUATION HANDOFF — READ FIRST
 
 **Target:** Pengembang atau AI Agent Baru  
-**Current State:** Governance Corrective Review / Pre-M0 (Phase 0 in Corrective Pass; M0 Foundation Not Started).  
+**Current State:** Milestone M0 (Foundation) COMPLETE. Ready for Milestone M1 (Account & Identity Foundation) authorization.  
 
 ---
 
 ## 1. What Was Just Completed
-Fondasi tata kelola NEXUS telah melalui evaluasi korektif menyeluruh:
-- Struktur direktori kanonikal target tata kelola telah lengkap (`apps/ios/`, `apps/mac-agent/`, `backend/`, `docs/`, dsb).
-- Status scaffold Xcode awal: Scaffold bawaan awal (`Untitled Project.xcodeproj` & `MyApp/`) masih berada di root repositori dan belum dipindahkan/di-rename. Migrasi ke struktur kanonikal `apps/ios/` akan dilakukan pada Milestone M0 Foundation setelah persetujuan tata kelola.
-- Tidak ada implementasi produksi NEXUS yang dibuat selama Governance Bootstrap (`0 lines of production code written`).
-- Tautan repositori telah dibersihkan menjadi tautan Markdown relatif portabel (0 active Markdown repository links using file:/// remain).
-- Kontrak API v1 diperluas lengkap sesuai baseline yang disetujui di 13 domain (60 endpoint terdokumentasi, termasuk 1 convenience endpoint).
-- Kontrak data database konseptual diperluas lengkap mencakup 19 entitas konseptual di 9 domain dengan pemisahan semantik mutlak (ADR-012), isolasi user-scoped, UTC timestamps, taksonomi memori 10 tipe kanonikal, sensitivitas (LOW s/d RESTRICTED + NEVER_STORE), dan 6 sumber bukti.
-- Asumsi-asumsi teknis yang belum disetujui telah dibersihkan dari status LOCKED dan dipindahkan ke TBD Registry (TBD-020 s/d TBD-026).
-- Budget performa dialihkan ke prinsip *Measurement-First* (Baseline = NOT MEASURED, Target = TBD AFTER BASELINE).
-- Matriks default permission dipindahkan ke status PROPOSED / TBD-023 dengan tetap mempertahankan tingkat DENY/ASK/ALLOW dan larangan mutlak arbitrary shell.
-- Gate SOP-12 dan skill `stage-close` diperkuat penuh mencakup 22 butir kriteria completion gate faktual (12 berkas stage total: 1 README orientasi + 11 artefak bukti).
-- Standing Autonomous Execution Policy dan User Decision Boundary dikunci secara kanonikal di `AGENTS.md` dan `docs/SOP/01-development-workflow.md`.
+Milestone M0 (Foundation) telah selesai dilaksanakan dan diverifikasi secara penuh:
+- **Xcode iOS Project:** Starter scaffold lama telah dipindahkan secara bersih ke `apps/ios/NEXUS.xcodeproj`, dikonfigurasi target `NEXUS`, dan diverifikasi berhasil kompilasi dan launch di macOS dan iOS Simulator. Folder lama di root telah dibersihkan.
+- **macOS Agent:** Inisialisasi paket Swift Native di `apps/mac-agent/` dengan protokol kapabilitas dan batas keamanan (larangan mutlak shell arbitrer ADR-010). Diverifikasi kompilasi dan startup `swift run nexus-agent`.
+- **Backend Service:** FastAPI modular monolith diinisialisasi di `backend/` menggunakan `uv`. Memuat konfigurasi aman via Pydantic, structured JSON logging dengan maskering credential/token, korelasi request `X-Request-ID` dengan UUIDv7, async database manager, Redis client manager, dan technical health check.
+- **Infrastruktur Lokal:** PostgreSQL 16 dengan pgvector dan Redis 7 berjalan via Docker Compose pada port bebas-konflik (5433 dan 6380). Migrasi baseline Alembic (`0001_baseline_schema`) telah diaplikasikan.
+- **Pengujian & Kualitas:** 8 unit test Pytest lulus 100% dalam 0.16s. Ruff check, Ruff format, dan Mypy strict mode 100% lulus tanpa isu.
+- **Paket Bersama & Otomasi:** Kontrak direktori `packages/` dan skrip otomasi (`scripts/dev-up.sh`, `scripts/dev-down.sh`, `scripts/run-tests.sh`) telah siap.
+- **Dokumentasi Stage:** Seluruh 12 berkas bukti stage di `docs/stages/M0-foundation/` terisi lengkap dengan bukti riil.
 
-## 2. Aturan Otonomi Milestone (Standing Autonomous Execution Rule)
-**PENTING UNTUK AGENT BERIKUTNYA:**
-Begitu pengguna secara eksplisit memberikan instruksi untuk memulai Milestone M0:
-- Milestone M0 memiliki **otorisasi eksekusi penuh (*standing execution authorization*)**.
-- Antigravity wajib melangkah secara otonom melewati seluruh sub-tahap normal M0 (inspeksi, scaffold refactor, migrasi Xcode, setup backend modular monolith, konfigurasi linter/formatter, eksekusi test, dokumentasi stage) **tanpa meminta konfirmasi mikro (*zero micro-confirmations*)**.
-- **Kondisi Berhenti (*Stop Conditions*) HANYA berlaku untuk:**
-  1. Keputusan pengguna yang benar-benar belum terselesaikan (*genuine unresolved user decision*, misal: pilihan tooling TBD-013/TBD-015/TBD-026);
-  2. Dialog izin sistem operasi / platform eksternal yang tidak dapat dihindari (macOS / Xcode / Keychain / TCC);
-  3. Ambiguitas keamanan kritis yang tidak dapat diselesaikan via least-privilege;
-  4. Penyelesaian atau kegagalan formal seluruh Milestone M0.
+## 2. Standing Autonomous Policy & Stop Boundary
+- Milestone M0 telah selesai dieksekusi secara otonom di bawah *Standing Autonomous Execution Policy*.
+- **BATAS PEMBERHENTIAN (*STOP BOUNDARY*):** Berhenti di batas akhir Milestone M0. Dilarang memulai Milestone M1 tanpa instruksi dan otorisasi formal eksplisit dari pengguna.
 
 ## 3. What Is Being Worked On
-Menunggu review dan persetujuan formal pengguna atas dokumen tata kelola akhir ini. Belum ada kode implementasi produksi NEXUS yang ditulis. Scaffold Xcode bawaan awal tetap utuh di root repositori.
+Pekerjaan M0 telah selesai. Status saat ini menunggu review pengguna dan otorisasi untuk memulai Milestone M1.
 
 ## 4. DO NOT CHANGE
 - Dilarang mengubah arsitektur backend menjadi microservices (ADR-001).
 - Dilarang menambahkan kemampuan terminal shell arbitrer ke Mac Agent (ADR-010).
-- Dilarang mengubah status item TBD tanpa persetujuan eksplisit pengguna.
-- Dilarang menulis kode implementasi produksi NEXUS atau memindahkan/me-rename scaffold Xcode sebelum persetujuan tata kelola dan dibukanya M0.
+- Dilarang melewati verifikasi pengujian atau melemahkan aturan keamanan least-privilege.
+- Dilarang memulai Milestone M1 tanpa persetujuan formal pengguna.
 
 ## 5. Next Exact Task
-Menunggu instruksi eksplisit pengguna untuk melangkah ke **Milestone M0: Foundation**. Begitu instruksi diberikan, laksanakan Milestone M0 secara otonom sesuai *Standing Autonomous Execution Policy*.
+Menunggu instruksi pengguna untuk memulai **Milestone M1: Account & Identity Foundation**.
+Setelah disetujui, M1 akan mengimplementasikan model domain identitas, registrasi/login pengguna dengan hashing Argon2id, token sesi/JWT, dan antarmuka autentikasi awal pada aplikasi iOS.
 
-## 6. Required Reading Before Starting
+## 6. Required Reading Before Starting M1
 1. [`AGENTS.md`](../../AGENTS.md)
-2. [Documentation Hub](../README.md)
-3. [`PROJECT-STATE.md`](PROJECT-STATE.md)
+2. [`docs/stages/M0-foundation/completion-report.md`](../stages/M0-foundation/completion-report.md)
+3. [`docs/context/PROJECT-STATE.md`](PROJECT-STATE.md)
+4. [`docs/context/CURRENT-STAGE.md`](CURRENT-STAGE.md)

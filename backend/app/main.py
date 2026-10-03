@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from app.api.v1.health import router as health_router
 from app.api.v1.router import api_router
 from app.core.config import settings
+from app.core.database import engine
 from app.core.logging import logger, setup_logging
 from app.core.middleware import RequestIDMiddleware
 from app.core.redis import close_redis
@@ -22,6 +23,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, Any]:
     yield
     logger.info("Shutting down NEXUS Backend...")
     await close_redis()
+    await engine.dispose()
 
 
 def create_application() -> FastAPI:

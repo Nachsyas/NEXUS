@@ -1,10 +1,11 @@
-# NEXT ACTIONS — Immediate Tasks
+# NEXT ACTIONS — Post-M0 / Transition to M1
 
-1. **User Review:** Pengguna meninjau laporan evaluasi korektif tata kelola (`bootstrap_report.md` / `docs/validation/GOVERNANCE-BOOTSTRAP-REPORT.md`).
-2. **Governance Approval Gate:** Pengguna memberikan persetujuan eksplisit untuk membuka **Milestone M0: Foundation**.
-3. **M0 Foundation Execution (Hanya setelah persetujuan pengguna):**
-   - Resolusi TBD pembuka M0: TBD-013 (Python package manager), TBD-014 (Primary ID strategy), TBD-015 (Python linter/formatter), TBD-016 (Local S3), TBD-026 (PostgreSQL version baseline).
-   - Migrasi dan penggantian nama (*rename*) scaffold Xcode starter bawaan (`Untitled Project.xcodeproj` & `MyApp/`) ke dalam direktori kanonikal `apps/ios/NEXUS.xcodeproj`.
-   - Inisialisasi kerangka backend FastAPI Modular Monolith di `backend/app/`.
-   - Inisialisasi skrip Alembic dan koneksi PostgreSQL + pgvector.
-   - Pembangunan pipeline CI pengujian dan linting baseline Phase 1.
+1. **User Review of M0 Completion:** Review final M0 Foundation completion report and test verifications.
+2. **Authorize Milestone M1 (Account & Identity Foundation):**
+   - User grants explicit authorization to proceed with Phase 1 / Milestone M1.
+3. **M1 Planning & Execution (Post-Authorization):**
+   - Resolve M1-related architectural decisions (e.g. password hashing argon2id parameters, session token lifespans).
+   - Implement user entity models, repositories, and authentication services in `backend/app/domain/identity/`.
+   - Implement authentication endpoints (`POST /api/v1/auth/register`, `POST /api/v1/auth/login`, `GET /api/v1/auth/me`).
+   - Implement iOS Identity & Keychain onboarding feature in `apps/ios/NEXUS/Features/Auth/`.
+   - Apply migrations for users and sessions tables.
