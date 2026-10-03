@@ -62,3 +62,7 @@ storage/
 uploads/
 scratch/
 tmp/
+
+# Swift PM
+.build/
+Package.resolved
