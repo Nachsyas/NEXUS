@@ -1,0 +1,64 @@
+# Git Ignore for NEXUS
+
+# Xcode & Apple
+.DS_Store
+*.xcworkspace/xcuserdata/
+*.xcuserdatad/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+ENV/
+
+# Testing & Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+coverage.xml
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.p12
+
+# Database & Cache
+*.sqlite3
+*.db
+dump.rdb
+
+# Storage artifacts
+storage/
+uploads/
+scratch/
+tmp/

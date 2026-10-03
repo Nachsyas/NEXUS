@@ -1,0 +1,34 @@
+name: Governance Documentation Validation (Pre-M0)
+
+# NOTE: This is a Pre-M0 governance-only validation workflow.
+# It does NOT represent the Phase 1 / M0 CI baseline (Python tooling and runtime
+# will be established in M0 after TBD-013 and TBD-015 are resolved).
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  governance-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify Core Governance Files
+        run: |
+          test -f AGENTS.md
+          test -f README.md
+          test -f LICENSE-STATUS.md
+          test -f docs/README.md
+          test -f docs/context/PROJECT-STATE.md
+          test -f docs/context/HANDOFF.md
+          test -f docs/context/CURRENT-STAGE.md
+          test -f docs/context/NEXT-ACTIONS.md
+          test -f docs/context/KNOWN-ISSUES.md
+          test -f docs/validation/CONSISTENCY-MATRIX.md
+
+      - name: Verify No Internal Absolute file:/// Markdown Links
+        run: |
+          ! grep -rn "](file:///" docs/ AGENTS.md README.md
