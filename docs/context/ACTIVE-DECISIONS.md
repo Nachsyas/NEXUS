@@ -19,3 +19,7 @@ Seluruh keputusan teknis berstatus aktif di repositori ini:
 | ADR-013 | Documentation-First Stage Governance | ACCEPTED | 2026-10-03 |
 | ADR-014 | Measurement-First Performance Engineering | ACCEPTED | 2026-10-03 |
 | ADR-015 | Deterministic Permission and Risk Outside LLM | ACCEPTED | 2026-10-03 |
+| ADR-016 | uv as Python Package and Environment Manager | ACCEPTED | 2026-10-03 |
+| ADR-017 | UUIDv7 Primary Identifier Strategy | ACCEPTED | 2026-10-03 |
+| ADR-018 | Ruff and Mypy for Python Tooling | ACCEPTED | 2026-10-03 |
+| ADR-019 | PostgreSQL 16 Major Version Baseline with pgvector | ACCEPTED | 2026-10-03 |

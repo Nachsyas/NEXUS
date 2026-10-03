@@ -43,3 +43,7 @@ IMPLEMENTATION
 - [ADR-013: Documentation-First & Stage Governance](ADR-013-documentation-first-stage-governance.md)
 - [ADR-014: Measurement-First Performance Engineering](ADR-014-measurement-first-performance-engineering.md)
 - [ADR-015: Deterministic Permission and Risk Model Outside LLM](ADR-015-deterministic-permission-and-risk-outside-llm.md)
+- [ADR-016: uv as Python Package and Environment Manager](ADR-016-uv-python-package-manager.md)
+- [ADR-017: UUIDv7 Primary Identifier Strategy](ADR-017-uuidv7-primary-id-strategy.md)
+- [ADR-018: Ruff and Mypy for Python Formatting, Linting, and Type-Checking](ADR-018-ruff-mypy-python-tooling.md)
+- [ADR-019: PostgreSQL 16 Major Version Baseline with pgvector](ADR-019-postgresql-16-major-version-baseline.md)
