@@ -1,0 +1,59 @@
+{
+  "" : {
+    "diagnostics" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/nexus-agent-primary.dia",
+    "emit-module-dependencies" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/nexus-agent-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/nexus-agent-primary-emit-module.dia",
+    "pch" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/nexus-agent-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/nexus-agent-primary.swiftdeps"
+  },
+  "/Users/user/Documents/Nexus/apps/mac-agent/Sources/AgentCore/AgentEngine.swift" : {
+    "const-values" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentEngine.swiftconstvalues",
+    "dependencies" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentEngine.d",
+    "diagnostics" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentEngine.dia",
+    "index-unit-output-path" : "/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentEngine.o",
+    "llvm-bc" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentEngine.bc",
+    "object" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentEngine.o",
+    "swift-dependencies" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentEngine.swiftdeps",
+    "swiftmodule" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentEngine~partial.swiftmodule"
+  },
+  "/Users/user/Documents/Nexus/apps/mac-agent/Sources/App/AgentApp.swift" : {
+    "const-values" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentApp.swiftconstvalues",
+    "dependencies" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentApp.d",
+    "diagnostics" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentApp.dia",
+    "index-unit-output-path" : "/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentApp.o",
+    "llvm-bc" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentApp.bc",
+    "object" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentApp.o",
+    "swift-dependencies" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentApp.swiftdeps",
+    "swiftmodule" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/AgentApp~partial.swiftmodule"
+  },
+  "/Users/user/Documents/Nexus/apps/mac-agent/Sources/Capabilities/CapabilityProtocol.swift" : {
+    "const-values" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/CapabilityProtocol.swiftconstvalues",
+    "dependencies" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/CapabilityProtocol.d",
+    "diagnostics" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/CapabilityProtocol.dia",
+    "index-unit-output-path" : "/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/CapabilityProtocol.o",
+    "llvm-bc" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/CapabilityProtocol.bc",
+    "object" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/CapabilityProtocol.o",
+    "swift-dependencies" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/CapabilityProtocol.swiftdeps",
+    "swiftmodule" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/CapabilityProtocol~partial.swiftmodule"
+  },
+  "/Users/user/Documents/Nexus/apps/mac-agent/Sources/Realtime/RealtimeProtocol.swift" : {
+    "const-values" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/RealtimeProtocol.swiftconstvalues",
+    "dependencies" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/RealtimeProtocol.d",
+    "diagnostics" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/RealtimeProtocol.dia",
+    "index-unit-output-path" : "/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/RealtimeProtocol.o",
+    "llvm-bc" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/RealtimeProtocol.bc",
+    "object" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/RealtimeProtocol.o",
+    "swift-dependencies" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/RealtimeProtocol.swiftdeps",
+    "swiftmodule" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/RealtimeProtocol~partial.swiftmodule"
+  },
+  "/Users/user/Documents/Nexus/apps/mac-agent/Sources/Security/SecurityBoundary.swift" : {
+    "const-values" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/SecurityBoundary.swiftconstvalues",
+    "dependencies" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/SecurityBoundary.d",
+    "diagnostics" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/SecurityBoundary.dia",
+    "index-unit-output-path" : "/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/SecurityBoundary.o",
+    "llvm-bc" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/SecurityBoundary.bc",
+    "object" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/SecurityBoundary.o",
+    "swift-dependencies" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/SecurityBoundary.swiftdeps",
+    "swiftmodule" : "/Users/user/Documents/Nexus/apps/mac-agent/.build/out/Intermediates.noindex/NEXUSAgent.build/Debug/nexus-agent-p.build/Objects-normal/arm64/SecurityBoundary~partial.swiftmodule"
+  }
+}
