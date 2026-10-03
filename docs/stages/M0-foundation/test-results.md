@@ -18,7 +18,7 @@ Command: `uv run pytest -v` (Python 3.12.14, pytest-9.1.1, pluggy-1.6.0)
 | `tests/test_startup.py` | `test_app_instantiation` | **PASSED** | 0.01s | Validates FastAPI application factory and title |
 | `tests/test_startup.py` | `test_settings_load` | **PASSED** | 0.01s | Validates Pydantic settings loading and database/redis URLs |
 
-**Total:** 8 passed in 0.16s (100% pass rate).
+**Total:** 8 passed in 0.17s (100% pass rate).
 
 ## 2. Static Code Analysis & Linting
 
@@ -35,14 +35,9 @@ Command: `uv run mypy app`
 - Result: **Success: no issues found in 9 source files** (strict mode enabled).
 
 ## 3. iOS Client Build Verification
-Command: `xcodebuild -project apps/ios/NEXUS.xcodeproj -scheme NEXUS -destination 'platform=macOS' build`
-- Result: **BUILD SUCCEEDED** (0 errors, 0 warnings).
-
 Command: `xcodebuild -project apps/ios/NEXUS.xcodeproj -scheme NEXUS -destination 'generic/platform=iOS Simulator' build`
 - Result: **BUILD SUCCEEDED** (0 errors, 0 warnings).
-
-Launch Test: Executed binary `/Users/user/Library/Developer/Xcode/DerivedData/NEXUS-aityhpruxewaudelrxeckgrciwfq/Build/Products/Debug/NEXUS.app/Contents/MacOS/NEXUS`
-- Result: Launched successfully without runtime exceptions.
+- **Supported Destinations:** Verified for iPhone and iPad (`TARGETED_DEVICE_FAMILY = "1,2"`). Unintended starter scaffold platforms (`macosx`, `xros`) removed to ensure strict separation between iOS Client and Mac Agent nodes.
 
 ## 4. Mac Agent Build Verification
 Command: `swift build` (in `apps/mac-agent/`)

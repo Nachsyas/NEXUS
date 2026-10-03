@@ -1,9 +1,12 @@
 # ADR-017: UUIDv7 Primary Identifier Strategy
 
-**Status:** ACCEPTED  
+**Status:** PROPOSED BY M0 IMPLEMENTATION  
 **Date:** 2026-10-03  
-**Deciders:** User & Core Engineering Team  
-**Resolves:** TBD-014  
+**Deciders:** Proposed by M0 Implementation; Pending Formal User Approval  
+**Resolves:** TBD-014 (Proposed)  
+
+> [!NOTE]
+> This decision represents the working implementation baseline established during Milestone M0. In accordance with NEXUS governance, it is classified as **PROPOSED BY M0 IMPLEMENTATION** pending explicit formal user acceptance.
 
 ## Context
 NEXUS entities (users, devices, memories, actions, audit logs, sessions, etc.) require unique primary keys that scale well in PostgreSQL, support distributed generation without coordination, and prevent index fragmentation.
@@ -11,7 +14,7 @@ NEXUS entities (users, devices, memories, actions, audit logs, sessions, etc.) r
 ## Problem
 What is the primary ID generation strategy for NEXUS database entities?
 
-## Decision
+## Proposed Decision
 Adopt **UUIDv7** (RFC 9562) as the default primary identifier strategy across NEXUS relational database tables.
 - Time-ordered 128-bit identifiers with millisecond-precision Unix timestamps in high bits.
 - Stored natively in PostgreSQL `UUID` columns (16 bytes).

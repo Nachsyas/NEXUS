@@ -14,7 +14,7 @@ cd apps/mac-agent
 swift build
 cd ../..
 
-echo "==> Building iOS Target (macOS / Simulator)..."
-xcodebuild -project apps/ios/NEXUS.xcodeproj -scheme NEXUS -destination 'platform=macOS' build -quiet
+echo "==> Building iOS Target (iOS Simulator - iPhone & iPad)..."
+xcodebuild -project apps/ios/NEXUS.xcodeproj -scheme NEXUS -destination 'generic/platform=iOS Simulator' build -quiet
 
 echo "==> All NEXUS test suites and builds passed successfully!"

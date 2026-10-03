@@ -1,9 +1,12 @@
 # ADR-018: Ruff and Mypy for Python Formatting, Linting, and Type-Checking
 
-**Status:** ACCEPTED  
+**Status:** PROPOSED BY M0 IMPLEMENTATION  
 **Date:** 2026-10-03  
-**Deciders:** User & Core Engineering Team  
-**Resolves:** TBD-015  
+**Deciders:** Proposed by M0 Implementation; Pending Formal User Approval  
+**Resolves:** TBD-015 (Proposed)  
+
+> [!NOTE]
+> This decision represents the working implementation baseline established during Milestone M0. In accordance with NEXUS governance, it is classified as **PROPOSED BY M0 IMPLEMENTATION** pending explicit formal user acceptance.
 
 ## Context
 NEXUS backend requires rigorous code quality standards, strict static typing, and automated formatting to ensure maintainability, security, and developer velocity.
@@ -11,7 +14,7 @@ NEXUS backend requires rigorous code quality standards, strict static typing, an
 ## Problem
 Which Python linter, formatter, and type-checking suite should be established in NEXUS local development and CI pipelines?
 
-## Decision
+## Proposed Decision
 Adopt **Ruff** for code formatting and linting, and **Mypy** for strict static type checking.
 - Ruff replaces Black, Flake8, isort, and pydocstyle in a single, ultra-fast Rust-based binary.
 - Mypy provides deep static type validation across all modules with strict typing enabled.
