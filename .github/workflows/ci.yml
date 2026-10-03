@@ -1,8 +1,4 @@
-name: Governance Documentation Validation (Pre-M0)
-
-# NOTE: This is a Pre-M0 governance-only validation workflow.
-# It does NOT represent the Phase 1 / M0 CI baseline (Python tooling and runtime
-# will be established in M0 after TBD-013 and TBD-015 are resolved).
+name: NEXUS CI Pipeline
 
 on:
   push:
@@ -12,6 +8,7 @@ on:
 
 jobs:
   governance-validation:
+    name: Governance & Documentation Validation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,3 +29,36 @@ jobs:
       - name: Verify No Internal Absolute file:/// Markdown Links
         run: |
           ! grep -rn "](file:///" docs/ AGENTS.md README.md
+
+  backend-ci:
+    name: Backend Lint, Type Check & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Ruff Lint Check
+        run: uv run ruff check .
+
+      - name: Ruff Format Check
+        run: uv run ruff format --check .
+
+      - name: Mypy Type Check
+        run: uv run mypy app
+
+      - name: Pytest Execution
+        run: uv run pytest -v
