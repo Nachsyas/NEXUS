@@ -2,26 +2,27 @@
 
 **Stage:** M0-foundation  
 **Phase:** Phase 1  
-**Status:** COMPLETE (Governance Normalized)  
-**Completion Date:** 2026-10-03  
+**Status:** CLOSED — COMPLETE (Formally Ratified)  
+**Completion Date:** 2026-10-03 (Ratified 2026-10-04)  
 
 ## 1. Executive Summary
-Milestone M0 (Foundation) has been successfully executed, verified, and normalized in strict accordance with the NEXUS Engineering Constitution, Phase 1 Specifications, and accepted Architecture Decision Records.
+Milestone M0 (Foundation) has been successfully executed, verified, normalized, and formally ratified by the user in strict accordance with the NEXUS Engineering Constitution, Phase 1 Specifications, and accepted Architecture Decision Records.
 
 Every canonical component of the NEXUS multi-platform architecture is in place:
 1. **iOS Application:** Safely migrated from root scaffold to `apps/ios/NEXUS.xcodeproj`, target `NEXUS`. Platforms normalized strictly to iOS/iPadOS (`iphoneos`, `iphonesimulator` for device families `1,2`). Starter scaffold destinations (`macosx`, `xros`) removed to maintain strict architectural separation between the iOS client and Mac Agent nodes.
-2. **macOS Agent:** Native Swift executable initialized in `apps/mac-agent/Package.swift`, compiling and running cleanly with capability and security boundaries (strict denial of arbitrary shell execution per ADR-010). M0 packaging is classified as **Foundation Executable**; final Phase 1 macOS application packaging remains open under **TBD-027**.
-3. **Backend Service:** FastAPI modular monolith initialized in `backend/` using `uv` (working baseline), structured JSON logging with credential redaction, request correlation via UUIDv7, async database and Redis managers, and 100% passing test coverage.
+2. **macOS Agent:** Native Swift executable initialized in `apps/mac-agent/Package.swift`, compiling and running cleanly with capability and security boundaries (strict denial of arbitrary shell execution per ADR-010). M0 packaging is approved as **Foundation Executable**; final Phase 1 macOS application packaging remains open under **TBD-027**.
+3. **Backend Service:** FastAPI modular monolith initialized in `backend/` using `uv` (approved Phase 1 baseline), structured JSON logging with credential redaction, request correlation via UUIDv7, async database and Redis managers, and 100% passing test coverage.
 4. **Local Infrastructure:** PostgreSQL 16 with pgvector and Redis 7 operating via Docker Compose on non-colliding host ports (5433, 6380); baseline Alembic migration applied.
 5. **Shared Contracts & CI:** Contract definitions established in `packages/`; automated linting, formatting, type-checking, testing, and link governance established in GitHub Actions CI.
 
 ## 2. Decision Status & Implementation Baselines
-- **Pending Formal User Decision Acceptance:**
-  - **TBD-013 (ADR-016):** `uv` Python package manager — *Status: PROPOSED BY M0 IMPLEMENTATION*
-  - **TBD-014 (ADR-017):** `UUIDv7` Primary ID strategy — *Status: PROPOSED BY M0 IMPLEMENTATION*
-  - **TBD-015 (ADR-018):** `Ruff + Mypy` Python tooling — *Status: PROPOSED BY M0 IMPLEMENTATION*
-  - **TBD-026 (ADR-019):** `PostgreSQL 16` major version baseline with pgvector — *Status: PROPOSED BY M0 IMPLEMENTATION*
-  *Working implementations remain active and verified; formal user ratification is recorded upon sign-off.*
+- **Formally Approved & Ratified User Decisions (2026-10-04):**
+  - **TBD-013 (ADR-016):** `uv` Python package & environment manager — **STATUS: ACCEPTED / TBD-013 RESOLVED**. Approved Phase 1 baseline. Future replacement requires standard ADR governance and evidence.
+  - **TBD-014 (ADR-017):** `UUIDv7` (RFC 9562) Primary ID strategy — **STATUS: ACCEPTED / TBD-014 RESOLVED**. Approved primary identifier strategy for NEXUS durable entities unless explicitly exempted with documented technical reason.
+  - **TBD-015 (ADR-018):** `Ruff + Mypy` Python tooling — **STATUS: ACCEPTED / TBD-015 RESOLVED**. Approved baseline for Python formatting, linting, and strict type checking.
+  - **TBD-026 (ADR-019):** `PostgreSQL 16` major version baseline with compatible pgvector — **STATUS: ACCEPTED / TBD-026 RESOLVED**. Approved development/database baseline; does not lock production hosting, future major upgrades, pgvector index strategy, or scaling architecture.
+- **Packaging Architecture (TBD-027):**
+  - **TBD-027:** Final Phase 1 macOS Agent packaging architecture — **STATUS: OPEN**. M0 Swift Package CLI executable is approved as Foundation Executable. Formal application packaging evaluation remains open before M6/M7.
 - **Implementation Baselines vs Locked Architecture:**
   - Redis 7, SQLAlchemy async engine, driver selections (`asyncpg`/`psycopg`), and development ports (5433, 6380) are classified as **implementation baselines**, not immutable architectural constraints.
 
@@ -50,7 +51,7 @@ Every canonical component of the NEXUS multi-platform architecture is in place:
 | 19 | Static type checking passing | **PASSED** | Mypy strict mode passed (0 errors in 9 files) |
 | 20 | Shared packages structure established | **PASSED** | `packages/protocols/`, `packages/schemas/`, `packages/constants/` |
 | 21 | Automated CI workflow configured | **PASSED** | `.github/workflows/ci.yml` |
-| 22 | All 12 stage documentation files complete | **PASSED** | `docs/stages/M0-foundation/` complete & normalized |
+| 22 | All 12 stage documentation files complete | **PASSED** | `docs/stages/M0-foundation/` complete & ratified |
 
 ## 4. Platform Boundary & Node Separation
 - **iOS Client:** Supported destinations confirmed as `iphoneos` and `iphonesimulator` (iPhone and iPad, `TARGETED_DEVICE_FAMILY = "1,2"`). Unintended template destinations (`macosx`, `xros`, `xrsimulator`) removed.
@@ -58,5 +59,6 @@ Every canonical component of the NEXUS multi-platform architecture is in place:
 
 ## 5. Next Milestone Recommendation
 - **Next Stage:** Milestone M1 — Account & Identity Foundation.
-- **Entry Pre-Conditions:** M0 technical implementation complete, validation passing 100%, decision batch pending formal user ratification.
-- **Stop Condition:** M0 normalization is complete. In accordance with user standing instructions, execution halts at this milestone boundary. M1 shall not commence without explicit user authorization.
+- **Entry Pre-Conditions:** M0 technical implementation complete, validation passing 100%, decision batch formally ratified.
+- **M1 Readiness:** UNBLOCKED.
+- **Stop Condition:** M0 is officially CLOSED. In accordance with user standing instructions, execution halts at this milestone boundary. Milestone M1 execution awaits explicit user command: `START M1 ACCOUNT & IDENTITY`.

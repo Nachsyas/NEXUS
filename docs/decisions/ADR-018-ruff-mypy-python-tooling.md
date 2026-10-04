@@ -1,12 +1,12 @@
 # ADR-018: Ruff and Mypy for Python Formatting, Linting, and Type-Checking
 
-**Status:** PROPOSED BY M0 IMPLEMENTATION  
-**Date:** 2026-10-03  
-**Deciders:** Proposed by M0 Implementation; Pending Formal User Approval  
-**Resolves:** TBD-015 (Proposed)  
+**Status:** ACCEPTED  
+**Date:** 2026-10-04 (Ratified)  
+**Deciders:** User Formal Ratification  
+**Resolves:** TBD-015  
 
 > [!NOTE]
-> This decision represents the working implementation baseline established during Milestone M0. In accordance with NEXUS governance, it is classified as **PROPOSED BY M0 IMPLEMENTATION** pending explicit formal user acceptance.
+> Formally approved and ratified by the User on 2026-10-04. Ruff Formatter, Ruff Linter, and MyPy Strict Mode are the approved baseline for Python formatting, linting, and static type checking during Phase 1. They represent engineering-quality tooling and may evolve later through evidence-based governance if necessary.
 
 ## Context
 NEXUS backend requires rigorous code quality standards, strict static typing, and automated formatting to ensure maintainability, security, and developer velocity.
@@ -14,14 +14,14 @@ NEXUS backend requires rigorous code quality standards, strict static typing, an
 ## Problem
 Which Python linter, formatter, and type-checking suite should be established in NEXUS local development and CI pipelines?
 
-## Proposed Decision
+## Decision
 Adopt **Ruff** for code formatting and linting, and **Mypy** for strict static type checking.
 - Ruff replaces Black, Flake8, isort, and pydocstyle in a single, ultra-fast Rust-based binary.
 - Mypy provides deep static type validation across all modules with strict typing enabled.
 - Single unified configuration in `pyproject.toml`.
 
 ## Alternatives Considered
-- *Black + Flake8 + isort + Mypy:* Fragmented multi-tool chain, significantly slower execution in local pre-commit and CI workflows.
+- *Black + Flake8 + isort + Mypy:* Fragmented multi-tool chain, significantly slower execution in local pre-commit and CI workflows.\n
 
 ## Consequences
 - Sub-second linting and formatting feedback loop during local development.

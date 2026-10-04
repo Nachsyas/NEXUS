@@ -1,12 +1,12 @@
 # ADR-019: PostgreSQL 16 Major Version Baseline with pgvector
 
-**Status:** PROPOSED BY M0 IMPLEMENTATION  
-**Date:** 2026-10-03  
-**Deciders:** Proposed by M0 Implementation; Pending Formal User Approval  
-**Resolves:** TBD-026 (Proposed)  
+**Status:** ACCEPTED  
+**Date:** 2026-10-04 (Ratified)  
+**Deciders:** User Formal Ratification  
+**Resolves:** TBD-026  
 
 > [!NOTE]
-> This decision represents the working implementation baseline established during Milestone M0. In accordance with NEXUS governance, it is classified as **PROPOSED BY M0 IMPLEMENTATION** pending explicit formal user acceptance.
+> Formally approved and ratified by the User on 2026-10-04. PostgreSQL 16 with compatible pgvector is the approved Phase 1 development/database baseline. This does NOT lock production hosting provider, future PostgreSQL major upgrades, pgvector index strategy, or future database scaling architecture; those remain governed independently.
 
 ## Context
 NEXUS requires a stable, high-performance relational database with vector search capability (pgvector) for local development, testing, and Phase 1 staging environments.
@@ -14,7 +14,7 @@ NEXUS requires a stable, high-performance relational database with vector search
 ## Problem
 What PostgreSQL major version baseline should be adopted for NEXUS container environments and local development?
 
-## Proposed Decision
+## Decision
 Adopt **PostgreSQL 16** with official **pgvector** extension support (`pgvector/pgvector:pg16` Docker image) as the baseline database engine for Phase 1.
 - Proven operational stability and broad extension compatibility.
 - Native Apple Silicon ARM64 container images available.

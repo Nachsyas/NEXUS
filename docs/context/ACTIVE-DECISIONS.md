@@ -19,7 +19,7 @@ Seluruh keputusan teknis berstatus aktif di repositori ini:
 | ADR-013 | Documentation-First Stage Governance | ACCEPTED | 2026-10-03 | Baseline Tata Kelola |
 | ADR-014 | Measurement-First Performance Engineering | ACCEPTED | 2026-10-03 | Baseline Tata Kelola |
 | ADR-015 | Deterministic Permission and Risk Outside LLM | ACCEPTED | 2026-10-03 | Baseline Keamanan |
-| ADR-016 | uv as Python Package and Environment Manager | PROPOSED BY M0 IMPLEMENTATION | 2026-10-03 | Baseline kerja M0; Menunggu persetujuan formal pengguna |
-| ADR-017 | UUIDv7 Primary Identifier Strategy | PROPOSED BY M0 IMPLEMENTATION | 2026-10-03 | Baseline kerja M0; Menunggu persetujuan formal pengguna |
-| ADR-018 | Ruff and Mypy for Python Tooling | PROPOSED BY M0 IMPLEMENTATION | 2026-10-03 | Baseline kerja M0; Menunggu persetujuan formal pengguna |
-| ADR-019 | PostgreSQL 16 Major Version Baseline with pgvector | PROPOSED BY M0 IMPLEMENTATION | 2026-10-03 | Baseline kerja M0; Menunggu persetujuan formal pengguna |
+| ADR-016 | uv as Python Package and Environment Manager | ACCEPTED | 2026-10-04 | Ratifikasi Formal Pengguna (TBD-013 RESOLVED) |
+| ADR-017 | UUIDv7 Primary Identifier Strategy | ACCEPTED | 2026-10-04 | Ratifikasi Formal Pengguna (TBD-014 RESOLVED) |
+| ADR-018 | Ruff and Mypy for Python Tooling | ACCEPTED | 2026-10-04 | Ratifikasi Formal Pengguna (TBD-015 RESOLVED) |
+| ADR-019 | PostgreSQL 16 Major Version Baseline with pgvector | ACCEPTED | 2026-10-04 | Ratifikasi Formal Pengguna (TBD-026 RESOLVED) |

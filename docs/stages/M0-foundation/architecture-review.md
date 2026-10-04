@@ -1,10 +1,10 @@
 # Architecture Review: Milestone M0 — Foundation
 
 **Stage:** M0-foundation  
-**Date:** 2026-10-03  
-**Status:** COMPLIANT WITH ENGINEERING CONSTITUTION & ADRS  
+**Date:** 2026-10-03 (Ratified 2026-10-04)  
+**Status:** COMPLIANT WITH ENGINEERING CONSTITUTION & ACCEPTED ADRS  
 
-## 1. Compliance with Accepted ADRs & Proposed M0 Decisions
+## 1. Compliance with Accepted ADRs
 
 | ADR | Title | Status | Compliance Evidence |
 |---|---|---|---|
@@ -18,16 +18,18 @@
 | **ADR-008** | Persistent Outbound WSS for Mac Agent | ACCEPTED | Module boundary protocol `RealtimeProtocol` prepared in Mac Agent. |
 | **ADR-009** | Capability-Based Execution Model | ACCEPTED | Protocol boundary `CapabilityProtocol` established without arbitrary execution. |
 | **ADR-010** | Strict Prohibition of Arbitrary Shell | ACCEPTED | `SecurityBoundary.isArbitraryShellPermitted = false`; zero shell APIs exposed. |
+| **ADR-011** | Model-Agnostic AI Provider Architecture | ACCEPTED | Protocol contract established for LLM adapters without vendor lock-in. |
 | **ADR-012** | Semantic Separation of Data Concepts | ACCEPTED | No premature entity mixing; clear boundary established for Phase 1 expansion. |
 | **ADR-013** | Documentation-First Stage Governance | ACCEPTED | All 12 stage documentation files generated with empirical data. |
 | **ADR-014** | Measurement-First Performance Engineering | ACCEPTED | Baseline benchmarks recorded in `performance-results.md`. |
-| **ADR-016** | uv Python Package Manager | PROPOSED BY M0 IMPLEMENTATION | `backend/pyproject.toml` and `backend/uv.lock` managed exclusively with `uv`. |
-| **ADR-017** | UUIDv7 Primary Identifier Strategy | PROPOSED BY M0 IMPLEMENTATION | UUIDv7 standard implemented via `uuid6.uuid7()` for request IDs and future entities. |
-| **ADR-018** | Ruff + Mypy Tooling Baseline | PROPOSED BY M0 IMPLEMENTATION | Fully automated Ruff linting, formatting, and strict Mypy checks configured in CI. |
-| **ADR-019** | PostgreSQL 16 Major Version Baseline | PROPOSED BY M0 IMPLEMENTATION | Standardized container version `pgvector/pgvector:pg16`. |
+| **ADR-015** | Deterministic Permission and Risk Model Outside LLM | ACCEPTED | Capability security design enforces deterministic authorization. |
+| **ADR-016** | uv Python Package Manager | ACCEPTED | `backend/pyproject.toml` and `backend/uv.lock` managed exclusively with `uv`. |
+| **ADR-017** | UUIDv7 Primary Identifier Strategy | ACCEPTED | UUIDv7 standard implemented via `uuid6.uuid7()` for request IDs and durable entities. |
+| **ADR-018** | Ruff + Mypy Tooling Baseline | ACCEPTED | Fully automated Ruff linting, formatting, and strict Mypy checks configured in CI. |
+| **ADR-019** | PostgreSQL 16 Major Version Baseline | ACCEPTED | Standardized container version `pgvector/pgvector:pg16`. |
 
 ## 2. Implementation Baselines vs Locked Architecture
-- **Locked Architectural Constraints:** Structural choices (Modular Monolith, Prohibition of Remote Shell, PostgreSQL relational foundation, Capability-based execution) are locked by Accepted ADRs.
+- **Locked Architectural Constraints:** Structural choices (Modular Monolith, Prohibition of Remote Shell, PostgreSQL relational foundation, Capability-based execution, UUIDv7 default ID strategy) are locked by Accepted ADRs.
 - **Implementation Baselines:** Specific operational versions and settings (Redis 7, SQLAlchemy async engine, `asyncpg`/`psycopg` drivers, and local dev host ports `5433` and `6380`) are classified as *implementation baselines*, not immutable architectural constraints, allowing fluid evolution without unnecessary governance friction.
 
 ## 3. Platform Boundary & Node Separation

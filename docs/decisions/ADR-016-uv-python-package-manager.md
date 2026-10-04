@@ -1,12 +1,12 @@
 # ADR-016: uv as Python Package and Environment Manager
 
-**Status:** PROPOSED BY M0 IMPLEMENTATION  
-**Date:** 2026-10-03  
-**Deciders:** Proposed by M0 Implementation; Pending Formal User Approval  
-**Resolves:** TBD-013 (Proposed)  
+**Status:** ACCEPTED  
+**Date:** 2026-10-04 (Ratified)  
+**Deciders:** User Formal Ratification  
+**Resolves:** TBD-013  
 
 > [!NOTE]
-> This decision represents the working implementation baseline established during Milestone M0. In accordance with NEXUS governance, it is classified as **PROPOSED BY M0 IMPLEMENTATION** pending explicit formal user acceptance.
+> Formally approved and ratified by the User on 2026-10-04. `uv` is the approved Phase 1 Python package/environment management baseline. Any future replacement must follow standard ADR governance and require empirical evidence.
 
 ## Context
 NEXUS backend requires a fast, reliable, reproducible Python package and environment management tool for Phase 1 local development and CI/CD pipelines.
@@ -14,7 +14,7 @@ NEXUS backend requires a fast, reliable, reproducible Python package and environ
 ## Problem
 Which Python package and environment manager should NEXUS use for backend development?
 
-## Proposed Decision
+## Decision
 Adopt **uv** (Astral) as the official Python package and virtual environment manager for NEXUS.
 - Standard pyproject.toml configuration.
 - Reproducible dependency resolution via `uv.lock`.
