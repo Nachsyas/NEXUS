@@ -4,12 +4,15 @@
 .DS_Store
 *.xcworkspace/xcuserdata/
 *.xcuserdatad/
-DerivedData/
-*.xcuserstate
 xcuserdata/
+*.xcuserstate
+DerivedData/
+.build/
+.swiftpm/
 *.ipa
 *.dSYM.zip
 *.dSYM
+Untitled Project.xcodeproj/
 
 # Python
 __pycache__/
@@ -17,7 +20,10 @@ __pycache__/
 *$py.class
 *.so
 .Python
+.venv/
+venv/
 env/
+ENV/
 build/
 develop-eggs/
 dist/
@@ -33,45 +39,44 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-.venv/
-venv/
-ENV/
 
 # Testing & Coverage
 .coverage
 htmlcov/
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 coverage.xml
 
-# Environment variables & secrets
+# Environment Variables & Secrets
 .env
 .env.*
 !.env.example
 *.pem
 *.key
-*.cert
+*.p8
 *.p12
+*.pfx
+*.cer
+*.cert
+*.mobileprovision
 
-# Database & Cache
+# Database & Ephemeral Cache
+*.sqlite
 *.sqlite3
 *.db
 dump.rdb
+local-data/
+runtime-data/
 
-# Storage artifacts
+# Logs & Temporary Files
+*.log
+tmp/
+temp/
 storage/
 uploads/
 scratch/
-tmp/
 
-# Swift PM
-.build/
-Package.resolved
-
-# Python
-.venv/
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-*.egg-info/
+# IDE Caches
+.vscode/
+.idea/
