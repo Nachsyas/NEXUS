@@ -6,6 +6,10 @@ from alembic import context
 from app.core.config import settings
 from app.core.database import Base
 
+# Import all models to register with Base.metadata
+from app.domains.auth.models import AuthIdentity, Session  # noqa: F401
+from app.domains.users.models import User, UserPreference  # noqa: F401
+
 config = context.config
 
 if config.config_file_name is not None:

@@ -23,3 +23,4 @@ Seluruh keputusan teknis berstatus aktif di repositori ini:
 | ADR-017 | UUIDv7 Primary Identifier Strategy | ACCEPTED | 2026-10-04 | Ratifikasi Formal Pengguna (TBD-014 RESOLVED) |
 | ADR-018 | Ruff and Mypy for Python Tooling | ACCEPTED | 2026-10-04 | Ratifikasi Formal Pengguna (TBD-015 RESOLVED) |
 | ADR-019 | PostgreSQL 16 Major Version Baseline with pgvector | ACCEPTED | 2026-10-04 | Ratifikasi Formal Pengguna (TBD-026 RESOLVED) |
+| ADR-020 | Session Token Format, Signing Architecture, and Rotation Strategy | ACCEPTED | 2026-10-04 | Ratifikasi Formal Pengguna (TBD-028 & TBD-029 RESOLVED) |

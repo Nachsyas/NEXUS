@@ -1,34 +1,41 @@
-# CURRENT STAGE: Milestone M0 Closed & Ratified
+# CURRENT STAGE: Milestone M1 Closed & Complete
 
-**Current Stage:** Milestone M0 (Foundation) — CLOSED / COMPLETE  
-**Phase:** Phase 1 (Foundation & Core Skeleton)  
-**Production NEXUS Implementation:** M0 Bedrock Established & Verified  
-**M0 Governance Status:** RATIFIED BY USER  
-**Next Stage:** Milestone M1 (Account & Identity Foundation) — UNBLOCKED (Awaiting user command to start)  
-**M0 Final Status:** CLOSED — COMPLETE  
+**Current Stage:** Milestone M1 (Account & Identity Foundation) — CLOSED / COMPLETE  
+**Phase:** Phase 1 (Core Personal Intelligence System)  
+**Production NEXUS Implementation:** M1 Subsystem Established & Verified  
+**M1 Governance Status:** IMPLEMENTED, TESTED, RATIFIED (ADR-020 ACCEPTED), VERIFIED, DOCUMENTED  
+**Live Apple E2E Status:** `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED` (Offline mock verifier 100% automated coverage; production verifier code complete)  
+**Next Stage:** Milestone M2 (Projects) — PENDING USER AUTHORIZATION  
+**M1 Final Status:** CLOSED — COMPLETE  
 
 ---
 
 ## 1. Stage Objectives & Accomplishments
-Milestone M0 established the foundational engineering bedrock across iOS, macOS Agent, Backend, Infrastructure, CI, and Architecture Governance.
+Milestone M1 established the canonical account and identity subsystem across backend domains, REST endpoints, database schema, and iOS client integration.
 
-### Completed & Ratified Deliverables:
-- [x] **ADR & Tooling Governance:** ADR-016 (`uv`), ADR-017 (`UUIDv7`), ADR-018 (`Ruff + Mypy`), and ADR-019 (`PostgreSQL 16`) formally APPROVED & RATIFIED by the user as ACCEPTED. TBD-013, TBD-014, TBD-015, and TBD-026 are RESOLVED.
-- [x] **Mac Agent Phase 1 Packaging (TBD-027):** Confirmed OPEN. Current Swift Package executable approved as M0 Foundation Executable; final Phase 1 macOS application packaging evaluation tracked under TBD-027.
-- [x] **iOS Project Migration & Platform Boundary:** Migrated to `apps/ios/NEXUS.xcodeproj`, configured target `NEXUS`, supported destinations verified for iOS/iPadOS (`iphoneos`, `iphonesimulator`). Unintended template destinations (`macosx`, `xros`) purged to enforce strict architectural separation from Mac Agent.
-- [x] **Root Directory Hygiene:** Safely removed obsolete `Untitled Project.xcodeproj` and `MyApp/` directories.
-- [x] **FastAPI Backend Skeleton:** Modular Monolith initialized with `uv`, request correlation (`X-Request-ID`), structured JSON logging with sensitive data redaction, SQLAlchemy async engine, Redis client manager, and technical health endpoints.
-- [x] **Local Infrastructure:** Docker Compose setup for PostgreSQL 16 (pgvector) and Redis 7 on conflict-free ports (5433/6380). Initialized Alembic and applied baseline schema migration (`0001_baseline_schema`).
-- [x] **Implementation Baselines vs Architecture:** Redis 7, SQLAlchemy async engine, driver details, and dev ports 5433/6380 documented as implementation baselines, not rigid architectural constraints.
-- [x] **Backend Testing & Quality:** Ruff check, Ruff format, Mypy strict mode, and Pytest suite (8/8 passing).
-- [x] **Shared Packages:** Contract directories and READMEs established in `packages/protocols/`, `packages/schemas/`, `packages/constants/`.
-- [x] **CI Pipeline & Tooling:** Updated `.github/workflows/ci.yml` and provided developer automation scripts (`scripts/dev-up.sh`, `scripts/dev-down.sh`, `scripts/run-tests.sh`).
-- [x] **Stage Documentation:** All 12 files completed, normalized, and ratified in `docs/stages/M0-foundation/`.
+### Completed Deliverables:
+- [x] **Canonical Domain Models & Separation:** `User` (UUIDv7 PK) strictly separated from `AuthIdentity` (`provider = 'APPLE'`). `User` != `Authentication Provider`.
+- [x] **Database Schema & Migrations:** Created `users`, `auth_identities`, `user_preferences`, `sessions`, `rotated_token_hashes` via Alembic migration `0002_identity_and_sessions.py`. Forward and rollback migrations fully verified.
+- [x] **External Provider Verification Boundary:** Abstract `AppleIdentityVerifier` with `ProductionAppleVerifier` (JWKS RS256 validation) and deterministic offline `MockAppleVerifier`.
+- [x] **Token & Session Architecture (ADR-020 ACCEPTED):** Short-lived HS256 JWT access tokens (15m configurable TTL), 256-bit opaque refresh tokens (30d configurable TTL). Plaintext refresh tokens are never persisted in the database (only SHA-256 hashes).
+- [x] **Security Invariants & Algorithm Safety:** Decoding explicitly restricted to `algorithms=["HS256"]`; `none` or unexpected algorithms strictly rejected. Production security validator forbids placeholder secrets in production.
+- [x] **Token Rotation & Replay Defense:** Atomic refresh token rotation with `rotated_token_hashes` archival. Reuse detection instantly revokes the entire token family with immediate database commit. Revoked sessions cannot refresh.
+- [x] **User Preferences:** Initialized on first Apple sign-in, manageable via `/api/v1/me/preferences`.
+- [x] **Multi-Tenant Isolation & IDOR Protection:** Enforced across all endpoints. Comprehensive tests verify isolation across read/modify profile, read/modify preferences, and list/revoke sessions. Cross-tenant access attempts return 403 `FORBIDDEN_ACCESS`.
+- [x] **iOS Client Architecture:**
+  - `NexusKeychainService`: Hardware-backed secure storage via iOS Security framework (`kSecClassGenericPassword`, `kSecAttrAccessibleAfterFirstUnlock`).
+  - `NexusAPIClient`: URLSession client conforming to canonical envelope.
+  - `AuthManager`: Observable auth state machine (`.unauthenticated`, `.authenticating`, `.authenticated`, `.error`).
+  - `AuthView`: Minimal, functional SwiftUI interface with `SignInWithAppleButton`, loading state, profile view, and logout action.
+- [x] **Target Compilation:** iOS target builds cleanly (`** BUILD SUCCEEDED **`); macOS agent builds cleanly.
+- [x] **Automated Tests:** 23/23 backend tests passing cleanly in 1.06s.
+- [x] **Quality Tooling:** Ruff check, Ruff format, and Mypy strict mode 100% passing across 30 source files.
+- [x] **Stage Documentation:** All 12 files completed in canonical path `docs/stages/phase-1/M1-account-identity/`.
 
 ---
 
 ## 2. Gate Verification Status
-All 22 items of the Milestone M0 Completion Gate checklist (SOP-12) have been verified, passed, and formally ratified.
+All Milestone M1 requirements and security invariants have been verified, tested, ratified, and documented.
 
 ## 3. Boundary & Stop Condition
-Milestone M0 is officially CLOSED. Milestone M1 (Account & Identity Foundation) is unblocked but requires explicit user authorization ("START M1 ACCOUNT & IDENTITY") before execution begins.
+Milestone M1 is officially **CLOSED**. In accordance with the canonical roadmap (M0 Foundation -> M1 Account & Identity -> M2 Projects -> M3 Memory Core), the next milestone is **Milestone M2 — Projects**. Milestone M2 requires explicit user authorization (`START M2 PROJECTS`) before execution begins. Standing Autonomous Execution halts here.

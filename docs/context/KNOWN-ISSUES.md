@@ -9,7 +9,23 @@ Daftar utang teknis, temuan audit tata kelola, dan batasan repositori yang terca
 
 ---
 
-## 2. Resolved Issues in Milestone M0 (2026-10-03)
+## 2. Operational Caveats & Status Notes (Milestone M1)
+| Caveat ID | Deskripsi | Komponen Terdampak | Status | Catatan Operasional |
+|---|---|---|---|---|
+| **CAVEAT-001** | Live Apple Sign-In E2E Verification | iOS & Auth Backend | DOCUMENTED / PENDING LIVE TEST | Kode verifikasi produksi (`ProductionAppleVerifier`) dan UI (`AuthView`) lengkap. Test otomatis 100% lulus via `MockAppleVerifier`. Live E2E dengan server Apple berstatus `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED` hingga akun Apple Developer riil diprovisi. |
+
+---
+
+## 3. Resolved Issues in Milestone M1 (2026-10-04)
+| Issue ID | Deskripsi Masalah | Komponen Terdampak | Status | Tindakan Resolusi |
+|---|---|---|---|---|
+| **ISSUE-005** | Token Reuse Detection DB Rollback: FastAPI rollback pada unhandled domain error membatalkan revokasi family. | Backend Auth Service | RESOLVED | Menambahkan `await db.commit()` eksplisit sebelum melempar `RefreshTokenReusedError` sehingga revokasi tersimpan permanen di PostgreSQL. |
+| **ISSUE-006** | Swift 6 Approachable Concurrency Actor Isolation pada DTO Codable. | iOS Data Models | RESOLVED | DTO model dan helper network/keychain ditandai `nonisolated` agar kompatibel lintas thread background URLSession. |
+| **ISSUE-007** | Ratifikasi Formal ADR-020 (Session Token Format & Rotation). | Architecture Governance | RESOLVED | Diratifikasi secara formal oleh pengguna sebagai ACCEPTED; TBD-028 dan TBD-029 berstatus RESOLVED. |
+
+---
+
+## 4. Resolved Issues in Milestone M0 (2026-10-03)
 | Issue ID | Deskripsi Masalah | Komponen Terdampak | Status | Tindakan Resolusi |
 |---|---|---|---|---|
 | **ISSUE-001** | Scaffold bawaan default Xcode (`Untitled Project.xcodeproj` & `MyApp/`) berada di root repositori. | Repository Structure / iOS | RESOLVED | Dimigrasikan dan dikonfigurasi ulang ke `apps/ios/NEXUS.xcodeproj`, folder starter lama dihapus dengan aman. |
@@ -19,7 +35,7 @@ Daftar utang teknis, temuan audit tata kelola, dan batasan repositori yang terca
 
 ---
 
-## 3. Resolved Governance Audit Findings (Pre-M0)
+## 5. Resolved Governance Audit Findings (Pre-M0)
 | Audit Item | Temuan Awal | Status Resolusi | Tindakan Perbaikan |
 |---|---|---|---|
 | **AUDIT-001** | Tautan Markdown menggunakan skema mesin absolut `file:///` | RESOLVED | Seluruh tautan diubah menjadi tautan relatif portabel. |

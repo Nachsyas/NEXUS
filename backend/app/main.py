@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Request, status
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -13,6 +14,7 @@ from app.core.database import engine
 from app.core.logging import logger, setup_logging
 from app.core.middleware import RequestIDMiddleware
 from app.core.redis import close_redis
+from app.domains.auth.security import AuthenticationError
 
 
 @asynccontextmanager
@@ -49,6 +51,43 @@ def create_application() -> FastAPI:
     # Request ID and tracing middleware
     app.add_middleware(RequestIDMiddleware)
 
+    # Authentication & Authorization Exception Handler
+    @app.exception_handler(AuthenticationError)
+    async def auth_exception_handler(request: Request, exc: AuthenticationError) -> JSONResponse:
+        request_id = getattr(request.state, "request_id", "unknown")
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "success": False,
+                "error": {
+                    "code": exc.code,
+                    "message": exc.message,
+                    "details": None,
+                },
+            },
+            headers={"X-Request-ID": request_id},
+        )
+
+    # Pydantic Request Validation Error Handler
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(
+        request: Request,
+        exc: RequestValidationError,
+    ) -> JSONResponse:
+        request_id = getattr(request.state, "request_id", "unknown")
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={
+                "success": False,
+                "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Request payload validation failed.",
+                    "details": exc.errors(),
+                },
+            },
+            headers={"X-Request-ID": request_id},
+        )
+
     # Global Exception Handler
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
@@ -61,11 +100,12 @@ def create_application() -> FastAPI:
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
+                "success": False,
                 "error": {
                     "code": "INTERNAL_SERVER_ERROR",
                     "message": "An unexpected internal server error occurred.",
-                    "request_id": request_id,
-                }
+                    "details": None,
+                },
             },
             headers={"X-Request-ID": request_id},
         )

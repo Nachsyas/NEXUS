@@ -47,6 +47,7 @@ IMPLEMENTATION
 - [ADR-017: UUIDv7 Primary Identifier Strategy](ADR-017-uuidv7-primary-id-strategy.md)
 - [ADR-018: Ruff and Mypy for Python Formatting, Linting, and Type-Checking](ADR-018-ruff-mypy-python-tooling.md)
 - [ADR-019: PostgreSQL 16 Major Version Baseline with pgvector](ADR-019-postgresql-16-major-version-baseline.md)
+- [ADR-020: Session Token Format, Signing Architecture, and Rotation Strategy](ADR-020-session-token-format-and-signing.md)
 
-## 4. Status Proposal ADR
-*Saat ini tidak ada ADR yang berstatus PROPOSED. Seluruh ADR-001 hingga ADR-019 telah disetujui (ACCEPTED) melalui ratifikasi formal pengguna.*
+## 4. Daftar ADR Diusulkan (Proposed)
+*(Tidak ada ADR yang berstatus PROPOSED saat ini. Seluruh ADR-001 hingga ADR-020 telah berstatus ACCEPTED).*

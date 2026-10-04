@@ -1,7 +1,7 @@
 # TBD Registry — Decisions To Be Decided
 
 **Status:** CANONICAL REGISTRY  
-**Version:** 1.5  
+**Version:** 1.7  
 
 Setiap item bertanda TBD di bawah ini belum diputuskan. Agent dilarang mengimplementasikan asumsi sepihak sebelum keputusan diresmikan via ADR berstatus ACCEPTED atau dokumen spesifikasi yang disetujui pengguna.
 
@@ -34,3 +34,5 @@ Setiap item bertanda TBD di bawah ini belum diputuskan. Agent dilarang mengimple
 | **TBD-025** | pgvector index strategy & performance target | Database & Performance | Memilih strategi indeks (HNSW vs IVFFlat) dan target latensi retrieval berbasis data riil | HNSW, IVFFlat, Flat (tanpa indeks untuk skala kecil) | First production-scale vector benchmark | OPEN | ADR-004 |
 | **TBD-026** | PostgreSQL major version baseline | Database & Environment | Menetapkan versi major resmi PostgreSQL untuk dev lokal dan container | PostgreSQL 16 (pgvector/pgvector:pg16) | M0 Foundation Setup | RESOLVED | ADR-019 |
 | **TBD-027** | Mac Agent Phase 1 packaging architecture | Mac Agent & OS Integration | Evaluasi packaging macOS untuk Keychain, TCC, lifecycle, status menu bar UI | Swift Package CLI Executable vs App Bundle (.app) Menu Bar Utility | M6 Device Pairing / M7 Device Intelligence | OPEN | ADR-007 |
+| **TBD-028** | Access Token Format & Signing Architecture | Auth & Session Management | Evaluasi format dan penandatanganan token akses (symmetric HS256 vs asymmetric RS256) | HS256 JWT (Phase 1 approved baseline) | M1 Account & Identity | RESOLVED | ADR-020 |
+| **TBD-029** | Default Token Expiration & Rotation TTLs | Session Management | Penentuan durasi kadaluarsa token akses dan token refresh | Access 15m / Refresh 30d (Phase 1 approved baseline) | M1 Account & Identity | RESOLVED | ADR-020 |

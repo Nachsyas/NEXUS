@@ -28,6 +28,7 @@ IMPLEMENTATION
 - **[API & Protocol](api/)**: REST API contract, WebSocket protocol, Mac Agent protocol, dan error codes.
 - **[AI Evaluation](ai/)**: Framework pengujian kualitas dan keselamatan AI.
 - **[SOP](SOP/)**: 12 Standar Operasional Prosedur rekayasa perangkat lunak.
-- **[Decisions (ADR)](decisions/)**: Catatan keputusan arsitektur (ADR-001 s/d ADR-015).
+- **[Decisions (ADR)](decisions/)**: Catatan keputusan arsitektur (ADR-001 s/d ADR-020).
+- **[Stages](stages/)**: Dokumentasi tahap milestone (Phase 1: M0 Foundation, M1 Account & Identity).
 - **[Context & Continuation](context/)**: Status proyek terkini dan berkas serah terima (HANDOFF).
 - **[Glossary](GLOSSARY.md)**: Istilah dan definisi istilah resmi ekosistem.
