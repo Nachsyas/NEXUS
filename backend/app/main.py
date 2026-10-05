@@ -15,6 +15,7 @@ from app.core.logging import logger, setup_logging
 from app.core.middleware import RequestIDMiddleware
 from app.core.redis import close_redis
 from app.domains.auth.security import AuthenticationError
+from app.domains.projects.exceptions import ProjectError
 
 
 @asynccontextmanager
@@ -54,6 +55,23 @@ def create_application() -> FastAPI:
     # Authentication & Authorization Exception Handler
     @app.exception_handler(AuthenticationError)
     async def auth_exception_handler(request: Request, exc: AuthenticationError) -> JSONResponse:
+        request_id = getattr(request.state, "request_id", "unknown")
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "success": False,
+                "error": {
+                    "code": exc.code,
+                    "message": exc.message,
+                    "details": None,
+                },
+            },
+            headers={"X-Request-ID": request_id},
+        )
+
+    # Projects Domain Exception Handler
+    @app.exception_handler(ProjectError)
+    async def project_exception_handler(request: Request, exc: ProjectError) -> JSONResponse:
         request_id = getattr(request.state, "request_id", "unknown")
         return JSONResponse(
             status_code=exc.status_code,
