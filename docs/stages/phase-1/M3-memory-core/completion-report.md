@@ -19,8 +19,21 @@ Key architectural deliverables completed:
 - **Mac Agent:** Clean build (`swift build` succeeded in 0.56s).
 - **Migration Invariant:** Clean forward and rollback cycle (`alembic downgrade -1` / `alembic upgrade head`).
 
-## 3. Governance State
-- Milestone Branch: `milestone/m3-memory-core`
-- Pull Request: #2 (`milestone/m3-memory-core` -> `main`)
-- Stage Documentation: 12 canonical required stage files plus 2 supplemental review/remediation evidence files (`review-record.md`, `post-review-remediation.md`).
-- Final residual pre-merge corrective pass completed and verified.
+## 3. Integration & Formal Closure
+- **Milestone Branch:** `milestone/m3-memory-core`
+- **Target Branch:** `main`
+- **Pull Request:** #2 — M3: Memory Core Domain & Control Center Foundation
+- **PR Status:** MERGED
+- **Reviewed Head:** `ab1c33ce51654155ee080721eb9190f4f037d41f`
+- **Merge Commit SHA:** `653b156b4af461b117a3f23f001a74973b36c04b`
+- **Final Milestone Status:** CLOSED — COMPLETE
+- **Final Integration:** MERGED TO `main`
+- **Final Backend Tests:** 59/59 passed (22 dedicated memory tests)
+- **Final Identity Representation:** Bounded SHA-256 `identity_hash` (`CHAR(64)`) with composite index `ix_memories_identity_lookup`
+- **Transaction Ownership:** API / Unit-of-Work boundary (`db.flush()` in service)
+- **Stage Documentation:** 12 canonical required stage files plus 2 supplemental review/remediation evidence files (`review-record.md`, `post-review-remediation.md`).
+- **Open Architectural Decisions:**
+  - `TBD-004` (Production Embedding Provider, Model & Dimension) remains OPEN.
+  - `TBD-025` (pgvector Index Strategy & Performance Target) remains OPEN.
+- **Hardware Integration Status:** `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED` remains open until physical device testing.
+- **Next Milestone:** Milestone M4 — AI Conversation (NOT STARTED).

@@ -1,9 +1,9 @@
-# AGENT HANDOFF: Milestone M3 Implementation Complete
+# AGENT HANDOFF: Milestone M3 Formally Closed & Merged
 
 **Date:** 2026-10-05  
 **Milestone:** Phase 1 / Milestone M3 — Memory Core Domain & Control Center Foundation  
-**Branch:** `milestone/m3-memory-core`  
-**Status:** IMPLEMENTATION COMPLETE & VERIFIED — READY FOR PR  
+**Branch:** `main`  
+**Status:** CLOSED — COMPLETE & MERGED TO MAIN  
 **Lead Agent:** Antigravity  
 
 ---
@@ -44,7 +44,14 @@
 
 ---
 
-## 3. Next Steps
-- Branch: `milestone/m3-memory-core`
-- Commit, push, open Pull Request to `main`.
-- Stop at M3 boundary; await user authorization for M4.
+## 3. Current Repository & Milestone State
+- Active Branch: `main`
+- PR #2: MERGED into `main` (commit `653b156b4af461b117a3f23f001a74973b36c04b`)
+- Milestone M0: CLOSED — COMPLETE
+- Milestone M1: CLOSED — COMPLETE & RATIFIED
+- Milestone M2: CLOSED — COMPLETE
+- Milestone M3: CLOSED — COMPLETE (Merged to `main`)
+- Milestone M4: NOT STARTED (Awaiting separate explicit authorization)
+- Open Decisions: `TBD-004` (Embedding Provider) and `TBD-025` (Vector Index) remain OPEN
+- Integration Caveat: `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED` remains open until physical device testing
+- Stop at M3 boundary; await explicit user authorization before starting M4.

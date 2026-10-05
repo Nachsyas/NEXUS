@@ -1,13 +1,13 @@
-# CURRENT STAGE: Milestone M3 Implementation Complete (Ready for PR)
+# CURRENT STAGE: Milestone M3 Formally Closed (Merged to main)
 
-**Current Stage:** Milestone M3 (Memory Core) — IMPLEMENTATION COMPLETE  
+**Current Stage:** Milestone M3 (Memory Core) — CLOSED — COMPLETE  
 **Phase:** Phase 1 (Core Personal Intelligence System)  
-**Branch:** `milestone/m3-memory-core`  
+**Branch:** `main`  
 **Production NEXUS Implementation:** M1 Account & Identity + M2 Projects + M3 Memory Core  
-**M3 Implementation Status:** COMPLETE  
+**M3 Implementation Status:** CLOSED — COMPLETE (Merged via PR #2, commit `653b156b4af461b117a3f23f001a74973b36c04b`)  
 **Live Apple E2E Status:** `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED` (Offline mock verifier 100% automated coverage; production verifier code complete)  
-**Next Stage:** Milestone M4 (AI Conversation) — NOT STARTED (Strictly pending M3 PR merge and separate explicit user authorization)  
-**Standing Autonomous Execution:** HALTED AT M3 PR BOUNDARY  
+**Next Stage:** Milestone M4 (AI Conversation) — NOT STARTED (Awaiting separate explicit authorization)  
+**Standing Autonomous Execution:** HALTED AT M3 BOUNDARY  
 
 ---
 
