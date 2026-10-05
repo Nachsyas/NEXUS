@@ -1,19 +1,20 @@
-# CURRENT STAGE: Milestone M2 Pre-Merge Corrective Pass Complete (Pending PR Merge)
+# CURRENT STAGE: Milestone M2 Formal Closure Complete (Awaiting M3 Execution)
 
-**Current Stage:** Milestone M2 (Projects Domain Foundation) — PRE-MERGE CORRECTIVE PASS COMPLETE ON `milestone/m2-projects`  
+**Current Stage:** Milestone M2 (Projects Domain Foundation) — CLOSED — COMPLETE (Integrated to `main`)  
 **Phase:** Phase 1 (Core Personal Intelligence System)  
-**Production NEXUS Implementation:** M1 Identity + M2 Projects Subsystems Established & Verified  
-**M2 Implementation Status:** COMPLETE ON `milestone/m2-projects`  
-**M2 Integration to Main:** PENDING PR #1 MERGE  
+**Production NEXUS Implementation:** M1 Account & Identity + M2 Projects Domains Established & Verified on `main`  
+**M2 Implementation Status:** COMPLETE  
+**M2 Integration to Main:** COMPLETE (PR #1 MERGED — commit `4a5342e33de7e01b602dc38a40e567f0ab352864`)  
 **Live Apple E2E Status:** `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED` (Offline mock verifier 100% automated coverage; production verifier code complete)  
-**Next Stage:** Milestone M3 (Memory Core) — STRICTLY PENDING PR #1 MERGE & EXPLICIT AUTHORIZATION  
+**Next Stage:** Milestone M3 (Memory Core) — NOT STARTED (Strictly pending separate explicit user authorization)  
+**Standing Autonomous Execution:** HALTED AT M2 BOUNDARY  
 
 ---
 
-## 1. Stage Objectives & Accomplishments (Milestone M2 Corrective Pass)
-Milestone M2 established and hardened the canonical Projects domain across backend services, REST endpoints, database schema, and iOS client integration.
+## 1. Stage Objectives & Accomplishments (Milestone M2 Closure)
+Milestone M2 established and hardened the canonical Projects domain across backend services, REST endpoints, database schema, and iOS client integration, and has been successfully merged into `main`.
 
-### Completed Deliverables:
+### Delivered & Verified Deliverables:
 - [x] **Canonical Domain Models & Separation:** `Project` and `ProjectTechnology` models with RFC 9562 UUIDv7 primary keys.
 - [x] **Database Schema & Migrations:** Created `projects`, `project_technologies`, and added `default_project_id` FK to `user_preferences` via Alembic migration `0003_projects_and_technologies.py`. Forward and rollback migrations fully verified with orphan cleanup safeguards.
 - [x] **Database Invariants Enforced:**
@@ -37,6 +38,7 @@ Milestone M2 established and hardened the canonical Projects domain across backe
 - [x] **Automated Tests:** 37/37 backend tests passing cleanly (14 dedicated project domain tests including concurrent slug generation, concurrent activation safety, and default project ownership validation).
 - [x] **Quality Tooling:** Ruff check, Ruff format check, and Mypy strict mode 100% passing across 37 source files.
 - [x] **Stage Documentation:** All 12 files completed and synchronized in canonical path `docs/stages/phase-1/M2-projects/`.
+- [x] **Integration & Closure:** PR #1 merged into `main` via merge commit `4a5342e33de7e01b602dc38a40e567f0ab352864`.
 
 ---
 

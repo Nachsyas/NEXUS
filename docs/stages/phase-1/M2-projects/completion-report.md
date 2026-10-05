@@ -1,7 +1,7 @@
 # Milestone M2 Completion Report: Projects Domain Foundation
 
 ## 1. Executive Summary
-Milestone M2 has been successfully completed and hardened on branch `milestone/m2-projects`. The complete Projects domain foundation is in place, providing isolated contextual workspaces for authenticated users. The database migration, API surface, security rules, async tests, iOS SwiftUI interface, and stage documentation are verified and ready for Pull Request integration to `main`.
+Milestone M2 has been successfully completed, hardened, and merged into `main` via Pull Request #1 (merge commit `4a5342e33de7e01b602dc38a40e567f0ab352864`). The complete Projects domain foundation is established on `main`, providing isolated contextual workspaces for authenticated users. The database migration, API surface, security rules, async concurrency tests, iOS SwiftUI interface, and stage documentation are verified and ratified.
 
 ## 2. Milestone Deliverables
 - **Data Persistence:**
@@ -28,11 +28,13 @@ Milestone M2 has been successfully completed and hardened on branch `milestone/m
   - Mypy: 0 errors across 37 files.
   - iOS Simulator build: `** BUILD SUCCEEDED **`.
   - Mac Agent build: `Build complete!`.
+  - GitHub Actions CI (PR #1): PASS (`Backend Lint, Type Check & Test`, `Governance & Documentation Validation`).
 
 ## 3. Scope Boundary Adherence
 - Strictly zero M3+ features implemented (no Memory Core embeddings, no LLM calls, no Context Engine retrieval, no Mac Agent actions).
 - Context endpoint `/api/v1/projects/{project_id}/context` returns deterministic metadata only; placeholders for future memory and knowledge entities were explicitly excluded.
 
 ## 4. Status
-- **Implementation Status:** COMPLETE on `milestone/m2-projects`
-- **Integration Status:** PENDING PR MERGE
+- **Implementation Status:** COMPLETE
+- **Integration Status:** COMPLETE (PR #1 MERGED to `main` — commit `4a5342e33de7e01b602dc38a40e567f0ab352864`)
+- **Milestone Status:** CLOSED — COMPLETE

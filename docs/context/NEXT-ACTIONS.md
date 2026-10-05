@@ -1,35 +1,50 @@
-# NEXT ACTIONS: Milestone M2 Completion & Next Steps
+# NEXT ACTIONS: Milestone M2 Closed & Milestone M3 Preparation
 
 **Date:** 2026-10-05  
-**Current Milestone:** Milestone M2 — Projects (PRE-MERGE CORRECTIVE PASS COMPLETE ON `milestone/m2-projects`)  
-**Active PR:** PR #1 (`https://github.com/Nachsyas/NEXUS/pull/1`)  
-**Next Milestone:** Milestone M3 — Memory Core (STRICTLY PENDING PR #1 MERGE & EXPLICIT USER AUTHORIZATION)  
+**Current Milestone:** Milestone M2 — Projects (CLOSED — COMPLETE on `main`)  
+**Merged Pull Request:** PR #1 (`https://github.com/Nachsyas/NEXUS/pull/1`, merge commit `4a5342e33de7e01b602dc38a40e567f0ab352864`)  
+**Next Milestone:** Milestone M3 — Memory Core (NOT STARTED — STRICTLY PENDING SEPARATE EXPLICIT USER AUTHORIZATION)  
+**Standing Autonomous Execution:** HALTED AT M2 BOUNDARY  
 
 ---
 
-## Completed Corrective Actions (Pre-Merge Pass)
-1. [x] Implement preference `default_project_id` ownership verification in `UserService.update_user_preferences` (cross-user rejection with 404, null clearing).
-2. [x] Implement bounded deterministic slug collision retry loop (5 attempts) with nested savepoints (`db.begin_nested()`) preventing 500 errors on concurrent creation.
-3. [x] Serialize project activation on user row lock with `select(User.id).where(User.id == user_id).with_for_update()` backed by `uq_projects_user_active`.
-4. [x] Align project priority enum across backend, iOS, tests, and contract to `LOW`, `NORMAL`, `HIGH` (removed `CRITICAL`).
-5. [x] Remove future `memory_count` and `knowledge_count` placeholders from M2 context endpoint, schemas, iOS models, and UI.
-6. [x] Correct roadmap drift in PR description and documentation to canonical roadmap: M4 AI Conversation, M5 Context Engine, M6 Device Pairing.
-7. [x] Execute real concurrency unit tests for slug collision and active focus safety via `asyncio.gather` (37/37 tests passing).
-8. [x] Verify database migration forward, rollback, and re-apply cycle (`upgrade head` -> `downgrade -1` -> `upgrade head`) with orphan cleanup.
-9. [x] Verify client targets: iOS Simulator (`** BUILD SUCCEEDED **`) and Mac Agent (`Build complete!`).
-10. [x] Re-run governance check: no local file paths (`file:///`) in repo markdown.
+## Factual State & Completed M2 Lifecycle
+1. [x] Implement backend Projects domain models, service, schemas, and router.
+2. [x] Create and verify Alembic migration `0003_projects_and_technologies.py` (tested upgrade, downgrade, re-upgrade).
+3. [x] Implement iOS SwiftUI views, client networking, and `ProjectManager`.
+4. [x] Verify quality gates (Ruff, Mypy strict, Pytest 37/37, iOS xcodebuild, Mac Agent swift build).
+5. [x] Author all 12 stage documentation files in `docs/stages/phase-1/M2-projects/`.
+6. [x] Execute M2 Pre-Merge Corrective Pass (ownership validation, savepoint slug retry, row-level activation lock, priority alignment, metadata context cleanup).
+7. [x] Merge PR #1 into `main` (`4a5342e33de7e01b602dc38a40e567f0ab352864`).
+8. [x] Synchronize local `main` with `origin/main`.
+9. [x] Formally close Milestone M2 in context documentation.
 
 ---
 
 ## Immediate Next Steps
-1. [ ] Commit corrective pass changes to `milestone/m2-projects`.
-2. [ ] Push changes to `origin milestone/m2-projects`.
-3. [ ] Update PR #1 description via `gh pr edit 1`.
-4. [ ] Verify GitHub Actions CI status for PR #1.
-5. [ ] Present Final Corrective Report and STOP (Do NOT merge PR #1; do NOT start M3).
+1. Await explicit user authorization before initiating Milestone M3 (Memory Core).
+2. When M3 is authorized:
+   - Create and check out feature branch `milestone/m3-memory-core` from synchronized `main`.
+   - Review M3 memory core requirements (extraction, classification, embeddings via pgvector, project bounding).
+3. Preserve `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED` caveat until real Apple Developer credentials and hardware are provisioned.
 
 ---
 
 ## Subsequent Milestone (Phase 1 / M3 — Memory Core)
-*Strict stop boundary: Do NOT initiate M3 until PR #1 is merged to main and explicit user authorization is provided.*
-- **Canonical Order:** M0 Foundation -> M1 Account & Identity -> M2 Projects -> M3 Memory Core -> M4 AI Conversation -> M5 Context Engine -> M6 Device Pairing.
+*Strict stop boundary: Do NOT initiate M3 until explicit user authorization is provided.*
+- **Canonical Roadmap Order:**
+  - M0 Foundation (CLOSED)
+  - M1 Account & Identity (CLOSED & RATIFIED)
+  - M2 Projects (CLOSED — COMPLETE)
+  - M3 Memory Core (NOT STARTED)
+  - M4 AI Conversation
+  - M5 Context Engine
+  - M6 Device Pairing
+  - M7 Device Intelligence
+  - M8 Remote Safe Actions
+  - M9 Permission + Audit Hardening
+  - M10 Knowledge Vault
+  - M11 Research Radar
+  - M12 Voice + Action Button
+  - M13 UX Polish
+  - M14 Beta Reliability

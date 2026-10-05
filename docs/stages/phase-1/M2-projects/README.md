@@ -4,7 +4,7 @@
 - **Milestone Code:** M2
 - **Milestone Name:** Projects Domain Foundation
 - **Phase:** Phase 1 — Core Personal Intelligence System
-- **Status:** IMPLEMENTATION COMPLETE — PENDING PR MERGE
+- **Status:** CLOSED — COMPLETE (Merged to `main` via PR #1, commit `4a5342e33de7e01b602dc38a40e567f0ab352864`)
 - **Governance:** ADR-001 (Modular Monolith), ADR-002 (PostgreSQL + pgvector), ADR-006 (RFC 9562 UUIDv7), ADR-020 (Session Security)
 - **Lead Agent:** Antigravity (Autonomous Execution)
 
@@ -52,3 +52,4 @@ Establish the canonical multi-tenant Projects domain for NEXUS. Projects represe
    - Mypy strict type checking 100% clean across 37 files.
    - iOS Simulator build (`xcodebuild`) SUCCEEDED.
    - Mac Agent regression build (`swift build`) SUCCEEDED.
+   - GitHub Actions CI (PR #1): PASS.

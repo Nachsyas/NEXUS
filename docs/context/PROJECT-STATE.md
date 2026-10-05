@@ -6,17 +6,20 @@
 **Primary Branch:** `main`  
 **Local Repository (Current Machine):** `/Users/user/Documents/Nexus`  
 **Current Phase:** Phase 1 (Core Personal Intelligence System)  
-**Current Milestone:** Milestone M2 (Projects Domain Foundation) — IMPLEMENTATION COMPLETE  
-**Current Stage:** Milestone M2 Implementation Complete on milestone/m2-projects, Pending PR Merge  
-**Production NEXUS Implementation:** M1 Account & Identity Subsystem + M2 Projects Domain Established & Verified  
+**Current Milestone:** Milestone M2 (Projects Domain Foundation) — CLOSED — COMPLETE  
+**Current Stage:** Milestone M2 formally closed after successful integration to main (PR #1 MERGED)  
+**Production NEXUS Implementation:** M1 Account & Identity Subsystem + M2 Projects Domain Established & Verified on main  
 **iOS Project:** Canonical location `apps/ios/NEXUS.xcodeproj` (Target `NEXUS`, Swift 6 Approachable Concurrency, Sign in with Apple UI, Keychain security, build succeeded)  
 **macOS Agent:** Canonical location `apps/mac-agent/` (Native Swift Package executable foundation; Phase 1 packaging tracked in TBD-027)  
 **Backend:** Canonical location `backend/` (FastAPI modular monolith, `uv` baseline, PostgreSQL 16 + pgvector, Redis 7, Alembic migration 0003 applied, 37/37 Pytest passing)  
 **Apple Auth Status:** Code complete; mock verifier 100% passing; iOS UI builds; `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED`  
-**M1 Status:** CLOSED — COMPLETE (Implementation Verified, Tested, Ratified, Documented)  
-**M2 Implementation Status:** COMPLETE ON milestone/m2-projects  
-**M2 Integration to Main:** PENDING PR MERGE  
-**Next Milestone:** Milestone M3 — Memory Core (Canonical Phase 1 order: M0 Foundation -> M1 Account & Identity -> M2 Projects -> M3 Memory Core; awaiting PR merge and explicit user authorization)  
+**M0 Status:** CLOSED — COMPLETE  
+**M1 Status:** CLOSED — COMPLETE & RATIFIED  
+**M2 Status:** CLOSED — COMPLETE  
+**M2 Implementation Status:** COMPLETE  
+**M2 Integration to Main:** COMPLETE (PR #1 MERGED — commit `4a5342e33de7e01b602dc38a40e567f0ab352864`)  
+**Next Milestone:** Milestone M3 — Memory Core (Canonical Phase 1 order: M0 Foundation -> M1 Account & Identity -> M2 Projects -> M3 Memory Core; NOT STARTED, strictly awaiting explicit user authorization)  
+**Standing Autonomous Execution:** HALTED AT M2 BOUNDARY  
 
 ---
 
@@ -39,8 +42,8 @@
 - **Stage Documentation:** Canonical path `docs/stages/phase-1/M1-account-identity/` (12/12 artifacts complete).
 
 ### Milestone M2 Deliverables
-- **Alembic Migration 0003:** `projects`, `project_technologies`, `user_preferences.default_project_id` foreign key. Validated forward and backward.
-- **Security & Invariants:** Partial unique index `uq_projects_user_active` enforcing single active project focus, (user_id, slug) uniqueness, cross-user IDOR rejection (404), atomic activation transactions.
+- **Alembic Migration 0003:** `projects`, `project_technologies`, `user_preferences.default_project_id` foreign key. Validated forward and backward with orphan cleanup.
+- **Security & Invariants:** Partial unique index `uq_projects_user_active` enforcing single active project focus, (user_id, slug) uniqueness with savepoint retries, cross-user IDOR rejection (404), default project ownership validation in `UserService`, serialized activation with row-level locking.
 - **API Surface:** 7 endpoints under `/api/v1/projects` (CRUD, activate, archive, deterministic context foundation).
 - **iOS Client:** `ProjectModels.swift`, `ProjectManager.swift`, `ProjectsListView.swift`, `CreateProjectSheet.swift`, `ProjectDetailView.swift` with TabView integration in `ContentView.swift`.
 - **Quality Gates:** 37/37 Pytest passing, Ruff check/format clean, Mypy strict clean, iOS Simulator build succeeded, Mac Agent build succeeded.
@@ -53,5 +56,5 @@
 - **Proposed ADRs:** Tidak ada.
 - **TBD Registry:** TBD-013, TBD-014, TBD-015, TBD-026, TBD-028, TBD-029 RESOLVED. TBD-027 OPEN.
 - **Open Defect Issues:** 0 defect aktif.
-- **Latest Relevant Commit:** M1 Account & Identity Foundation Ratified & Closed  
-- **Last Updated:** 2026-10-04  
+- **Latest Relevant Commit:** `4a5342e` Merge pull request #1 from Nachsyas/milestone/m2-projects  
+- **Last Updated:** 2026-10-05  
