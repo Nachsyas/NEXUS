@@ -73,38 +73,95 @@
 
 ---
 
-## 3. Projects
+## 3. Projects (Ratified in Milestone M2)
 
 ### `POST /projects`
 - **Tujuan:** Membuat workspace proyek baru.
-- **Request Body:** `{ "name": "string", "description": "string", "technologies": ["string"] }`
-- **Response Data:** `{ "id": "uuid", "name": "string", "description": "string", "status": "PLANNING", "is_active": false, "technologies": [] }`
+- **Request Body:**
+  ```json
+  {
+    "name": "string",
+    "description": "string | null",
+    "status": "IDEA | PLANNING | ACTIVE | PAUSED | COMPLETED",
+    "priority": "LOW | NORMAL | HIGH | null",
+    "summary": "string | null",
+    "progress": 0,
+    "technologies": ["string"]
+  }
+  ```
+- **Response Data:**
+  ```json
+  {
+    "id": "uuid",
+    "name": "string",
+    "slug": "string",
+    "description": "string | null",
+    "status": "PLANNING",
+    "priority": "NORMAL",
+    "is_active": false,
+    "summary": "string | null",
+    "progress": 0,
+    "technologies": [
+      {
+        "id": "uuid",
+        "name": "string",
+        "category": "string | null",
+        "version": "string | null",
+        "metadata": {},
+        "created_at": "ISO-8601 UTC",
+        "updated_at": "ISO-8601 UTC"
+      }
+    ],
+    "created_at": "ISO-8601 UTC",
+    "updated_at": "ISO-8601 UTC",
+    "archived_at": null
+  }
+  ```
 
 ### `GET /projects`
-- **Tujuan:** Mengambil daftar seluruh proyek milik pengguna.
-- **Query Params:** `include_archived=boolean`
-- **Response Data:** `[ { "id": "uuid", "name": "string", "status": "IDEA | PLANNING | ACTIVE | PAUSED | COMPLETED | ARCHIVED", "is_active": true, "created_at": "ISO-8601 UTC" } ]`
+- **Tujuan:** Mengambil daftar proyek milik pengguna secara terpaginasi dan terfilter.
+- **Query Params:**
+  - `include_archived=boolean` (default: false)
+  - `status=IDEA|PLANNING|ACTIVE|PAUSED|COMPLETED|ARCHIVED` (opsional)
+  - `is_active=boolean` (opsional)
+  - `page=integer` (default: 1, min: 1)
+  - `limit=integer` (default: 20, min: 1, max: 100)
+- **Response Data:** List of `ProjectResponse` objects.
+- **Response Meta:** `{ "page": 1, "limit": 20, "total": 1, "total_pages": 1 }`
 
 ### `GET /projects/{project_id}`
-- **Tujuan:** Mengambil informasi detail proyek tertentu.
-- **Response Data:** `{ "id": "uuid", "name": "string", "description": "string", "status": "string", "priority": "string | null", "is_active": true, "summary": "string | null", "progress": 0.0, "technologies": [], "created_at": "ISO-8601 UTC" }`
+- **Tujuan:** Mengambil informasi detail proyek tertentu beserta daftar teknologi terkait.
+- **Response Data:** `ProjectResponse` object.
 
 ### `PATCH /projects/{project_id}`
-- **Tujuan:** Memperbarui metadata proyek (nama, deskripsi, teknologi, status).
-- **Request Body:** `{ "name": "string", "description": "string", "status": "string", "technologies": ["string"] }`
-- **Response Data:** `{ "id": "uuid", "name": "string", "description": "string", "status": "string" }`
+- **Tujuan:** Memperbarui metadata proyek (nama, deskripsi, status, prioritas, ringkasan, progress, teknologi).
+- **Request Body:** Partial `ProjectUpdate` fields.
+- **Response Data:** Updated `ProjectResponse` object.
 
 ### `POST /projects/{project_id}/activate`
-- **Tujuan:** Menetapkan proyek sebagai proyek aktif saat ini untuk orientasi konteks interaksi.
-- **Response Data:** `{ "id": "uuid", "is_active": true }`
+- **Tujuan:** Menetapkan proyek sebagai fokus aktif tunggal pengguna (menonaktifkan fokus aktif sebelumnya secara atomik). Idempoten.
+- **Response Data:** `{ "id": "uuid", "name": "string", "slug": "string", "is_active": true }`
 
 ### `POST /projects/{project_id}/archive`
-- **Tujuan:** Mengarsipkan proyek (status ARCHIVED) tanpa menghapus rekaman permanen.
-- **Response Data:** `{ "id": "uuid", "status": "ARCHIVED", "archived_at": "ISO-8601 UTC" }`
+- **Tujuan:** Mengarsipkan proyek (status ARCHIVED), menonaktifkan fokus aktif jika sedang aktif, dan mencatat waktu arsip tanpa menghapus rekaman permanen.
+- **Response Data:** `{ "id": "uuid", "status": "ARCHIVED", "is_active": false, "archived_at": "ISO-8601 UTC" }`
 
 ### `GET /projects/{project_id}/context`
-- **Tujuan:** Mengambil rekapitulasi ringkasan konteks proyek, termasuk memori terkait, dokumen vault, dan status ekosistem.
-- **Response Data:** `{ "project_id": "uuid", "summary": "string", "active_technologies": [], "memory_count": 0, "knowledge_count": 0 }`
+- **Tujuan:** Mengambil ringkasan fondasi metadata konteks proyek terstruktur untuk orientasi interaksi (M2 deterministic metadata baseline).
+- **Response Data:**
+  ```json
+  {
+    "project_id": "uuid",
+    "name": "string",
+    "slug": "string",
+    "summary": "string | null",
+    "status": "string",
+    "priority": "string | null",
+    "progress": 0,
+    "is_active": true,
+    "active_technologies": ["string"]
+  }
+  ```
 
 ---
 

@@ -8,6 +8,7 @@ from app.core.database import Base
 
 # Import all models to register with Base.metadata
 from app.domains.auth.models import AuthIdentity, Session  # noqa: F401
+from app.domains.projects.models import Project, ProjectTechnology  # noqa: F401
 from app.domains.users.models import User, UserPreference  # noqa: F401
 
 config = context.config

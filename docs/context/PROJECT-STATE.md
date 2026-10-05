@@ -6,15 +6,17 @@
 **Primary Branch:** `main`  
 **Local Repository (Current Machine):** `/Users/user/Documents/Nexus`  
 **Current Phase:** Phase 1 (Core Personal Intelligence System)  
-**Current Milestone:** Milestone M1 (Account & Identity Foundation) — CLOSED / COMPLETE  
-**Current Stage:** Milestone M1 Completed, Verified, Ratified, and Documented; Ready for M2  
-**Production NEXUS Implementation:** M1 Account & Identity Subsystem Established & Verified  
+**Current Milestone:** Milestone M2 (Projects Domain Foundation) — IMPLEMENTATION COMPLETE  
+**Current Stage:** Milestone M2 Implementation Complete on milestone/m2-projects, Pending PR Merge  
+**Production NEXUS Implementation:** M1 Account & Identity Subsystem + M2 Projects Domain Established & Verified  
 **iOS Project:** Canonical location `apps/ios/NEXUS.xcodeproj` (Target `NEXUS`, Swift 6 Approachable Concurrency, Sign in with Apple UI, Keychain security, build succeeded)  
 **macOS Agent:** Canonical location `apps/mac-agent/` (Native Swift Package executable foundation; Phase 1 packaging tracked in TBD-027)  
-**Backend:** Canonical location `backend/` (FastAPI modular monolith, `uv` baseline, PostgreSQL 16 + pgvector, Redis 7, Alembic migration 0002 applied, 23/23 Pytest passing)  
+**Backend:** Canonical location `backend/` (FastAPI modular monolith, `uv` baseline, PostgreSQL 16 + pgvector, Redis 7, Alembic migration 0003 applied, 37/37 Pytest passing)  
 **Apple Auth Status:** Code complete; mock verifier 100% passing; iOS UI builds; `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED`  
 **M1 Status:** CLOSED — COMPLETE (Implementation Verified, Tested, Ratified, Documented)  
-**Next Milestone:** Milestone M2 — Projects (Canonical Phase 1 order: M0 Foundation -> M1 Account & Identity -> M2 Projects -> M3 Memory Core; awaiting explicit user authorization)  
+**M2 Implementation Status:** COMPLETE ON milestone/m2-projects  
+**M2 Integration to Main:** PENDING PR MERGE  
+**Next Milestone:** Milestone M3 — Memory Core (Canonical Phase 1 order: M0 Foundation -> M1 Account & Identity -> M2 Projects -> M3 Memory Core; awaiting PR merge and explicit user authorization)  
 
 ---
 
@@ -35,6 +37,14 @@
 - **Alembic Migration 0002:** `users`, `auth_identities`, `user_preferences`, `sessions`, `rotated_token_hashes`. Validated forward and backward.
 - **Security & Quality:** Production secret entropy validator, algorithm confusion prevention (`algorithms=["HS256"]`), 6-dimension cross-user multi-tenancy isolation verified.
 - **Stage Documentation:** Canonical path `docs/stages/phase-1/M1-account-identity/` (12/12 artifacts complete).
+
+### Milestone M2 Deliverables
+- **Alembic Migration 0003:** `projects`, `project_technologies`, `user_preferences.default_project_id` foreign key. Validated forward and backward.
+- **Security & Invariants:** Partial unique index `uq_projects_user_active` enforcing single active project focus, (user_id, slug) uniqueness, cross-user IDOR rejection (404), atomic activation transactions.
+- **API Surface:** 7 endpoints under `/api/v1/projects` (CRUD, activate, archive, deterministic context foundation).
+- **iOS Client:** `ProjectModels.swift`, `ProjectManager.swift`, `ProjectsListView.swift`, `CreateProjectSheet.swift`, `ProjectDetailView.swift` with TabView integration in `ContentView.swift`.
+- **Quality Gates:** 37/37 Pytest passing, Ruff check/format clean, Mypy strict clean, iOS Simulator build succeeded, Mac Agent build succeeded.
+- **Stage Documentation:** Canonical path `docs/stages/phase-1/M2-projects/` (12/12 artifacts complete).
 
 ---
 

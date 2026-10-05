@@ -63,6 +63,11 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    projects: Mapped[list["Project"]] = relationship(  # type: ignore[name-defined] # noqa: F821
+        "Project",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
 
 class UserPreference(Base):
@@ -90,7 +95,12 @@ class UserPreference(Base):
     # Deferred references for future milestones (M2 Projects, M6 Devices)
     default_project_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
+        ForeignKey("projects.id", ondelete="SET NULL"),
         nullable=True,
+    )
+    default_project: Mapped["Project | None"] = relationship(  # type: ignore[name-defined] # noqa: F821
+        "Project",
+        foreign_keys=[default_project_id],
     )
     default_device_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),

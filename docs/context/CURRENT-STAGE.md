@@ -1,41 +1,45 @@
-# CURRENT STAGE: Milestone M1 Closed & Complete
+# CURRENT STAGE: Milestone M2 Pre-Merge Corrective Pass Complete (Pending PR Merge)
 
-**Current Stage:** Milestone M1 (Account & Identity Foundation) — CLOSED / COMPLETE  
+**Current Stage:** Milestone M2 (Projects Domain Foundation) — PRE-MERGE CORRECTIVE PASS COMPLETE ON `milestone/m2-projects`  
 **Phase:** Phase 1 (Core Personal Intelligence System)  
-**Production NEXUS Implementation:** M1 Subsystem Established & Verified  
-**M1 Governance Status:** IMPLEMENTED, TESTED, RATIFIED (ADR-020 ACCEPTED), VERIFIED, DOCUMENTED  
+**Production NEXUS Implementation:** M1 Identity + M2 Projects Subsystems Established & Verified  
+**M2 Implementation Status:** COMPLETE ON `milestone/m2-projects`  
+**M2 Integration to Main:** PENDING PR #1 MERGE  
 **Live Apple E2E Status:** `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED` (Offline mock verifier 100% automated coverage; production verifier code complete)  
-**Next Stage:** Milestone M2 (Projects) — PENDING USER AUTHORIZATION  
-**M1 Final Status:** CLOSED — COMPLETE  
+**Next Stage:** Milestone M3 (Memory Core) — STRICTLY PENDING PR #1 MERGE & EXPLICIT AUTHORIZATION  
 
 ---
 
-## 1. Stage Objectives & Accomplishments
-Milestone M1 established the canonical account and identity subsystem across backend domains, REST endpoints, database schema, and iOS client integration.
+## 1. Stage Objectives & Accomplishments (Milestone M2 Corrective Pass)
+Milestone M2 established and hardened the canonical Projects domain across backend services, REST endpoints, database schema, and iOS client integration.
 
 ### Completed Deliverables:
-- [x] **Canonical Domain Models & Separation:** `User` (UUIDv7 PK) strictly separated from `AuthIdentity` (`provider = 'APPLE'`). `User` != `Authentication Provider`.
-- [x] **Database Schema & Migrations:** Created `users`, `auth_identities`, `user_preferences`, `sessions`, `rotated_token_hashes` via Alembic migration `0002_identity_and_sessions.py`. Forward and rollback migrations fully verified.
-- [x] **External Provider Verification Boundary:** Abstract `AppleIdentityVerifier` with `ProductionAppleVerifier` (JWKS RS256 validation) and deterministic offline `MockAppleVerifier`.
-- [x] **Token & Session Architecture (ADR-020 ACCEPTED):** Short-lived HS256 JWT access tokens (15m configurable TTL), 256-bit opaque refresh tokens (30d configurable TTL). Plaintext refresh tokens are never persisted in the database (only SHA-256 hashes).
-- [x] **Security Invariants & Algorithm Safety:** Decoding explicitly restricted to `algorithms=["HS256"]`; `none` or unexpected algorithms strictly rejected. Production security validator forbids placeholder secrets in production.
-- [x] **Token Rotation & Replay Defense:** Atomic refresh token rotation with `rotated_token_hashes` archival. Reuse detection instantly revokes the entire token family with immediate database commit. Revoked sessions cannot refresh.
-- [x] **User Preferences:** Initialized on first Apple sign-in, manageable via `/api/v1/me/preferences`.
-- [x] **Multi-Tenant Isolation & IDOR Protection:** Enforced across all endpoints. Comprehensive tests verify isolation across read/modify profile, read/modify preferences, and list/revoke sessions. Cross-tenant access attempts return 403 `FORBIDDEN_ACCESS`.
+- [x] **Canonical Domain Models & Separation:** `Project` and `ProjectTechnology` models with RFC 9562 UUIDv7 primary keys.
+- [x] **Database Schema & Migrations:** Created `projects`, `project_technologies`, and added `default_project_id` FK to `user_preferences` via Alembic migration `0003_projects_and_technologies.py`. Forward and rollback migrations fully verified with orphan cleanup safeguards.
+- [x] **Database Invariants Enforced:**
+  - `uq_projects_user_slug`: Unique slug per user. Bounded retry loop (5 attempts) with nested savepoints (`db.begin_nested()`) ensures concurrent same-name creation does not produce unhandled 500 errors.
+  - `chk_projects_progress_bounds`: Progress validated between 0 and 100.
+  - `uq_projects_user_active`: Partial unique index guaranteeing at most one active project per user.
+  - `uq_project_technologies_project_name`: Unique technology names within a project.
+  - `fk_user_preferences_default_project_id`: Referential integrity with `ON DELETE SET NULL`.
+- [x] **Preferences Default Project Ownership Validation:** In `UserService.update_user_preferences`, strictly verifies that `default_project_id` belongs to the authenticated user. Cross-tenant assignment is rejected with 404 `PROJECT_NOT_FOUND`; `null` clears default project.
+- [x] **Active Focus Invariant & Concurrency Safety:** User row-level lock (`select(User.id).where(User.id == user_id).with_for_update()`) serializes concurrent activation calls, atomically deactivating prior active focus and activating target project. Backed by PostgreSQL partial unique index.
+- [x] **Deterministic M2 Context Baseline:** `GET /api/v1/projects/{project_id}/context` returns deterministic project metadata only. Future Memory and Knowledge placeholders (`memory_count`, `knowledge_count`) have been excluded from M2.
+- [x] **Soft Archiving:** Setting `status = ARCHIVED`, `is_active = false`, and recording `archived_at`. Default listings exclude archived projects unless `include_archived=true`.
+- [x] **RESTful API Surface:** 7 endpoints under `/api/v1/projects` implemented with RFC-compliant response envelopes, canonical priorities (`LOW`, `NORMAL`, `HIGH`), and bounded pagination (`limit <= 100`).
 - [x] **iOS Client Architecture:**
-  - `NexusKeychainService`: Hardware-backed secure storage via iOS Security framework (`kSecClassGenericPassword`, `kSecAttrAccessibleAfterFirstUnlock`).
-  - `NexusAPIClient`: URLSession client conforming to canonical envelope.
-  - `AuthManager`: Observable auth state machine (`.unauthenticated`, `.authenticating`, `.authenticated`, `.error`).
-  - `AuthView`: Minimal, functional SwiftUI interface with `SignInWithAppleButton`, loading state, profile view, and logout action.
-- [x] **Target Compilation:** iOS target builds cleanly (`** BUILD SUCCEEDED **`); macOS agent builds cleanly.
-- [x] **Automated Tests:** 23/23 backend tests passing cleanly in 1.06s.
-- [x] **Quality Tooling:** Ruff check, Ruff format, and Mypy strict mode 100% passing across 30 source files.
-- [x] **Stage Documentation:** All 12 files completed in canonical path `docs/stages/phase-1/M1-account-identity/`.
+  - `ProjectModels.swift`: Swift domain models and payloads aligned to canonical priorities and metadata-only context.
+  - `NexusAPIClient.swift`: Added 7 typed networking methods with fractional-second ISO8601 date decoding.
+  - `ProjectManager.swift`: Observable state store managing projects, active focus, loading state, and error handling.
+  - `ProjectsListView.swift`, `CreateProjectSheet.swift`, `ProjectDetailView.swift`: SwiftUI views for browsing, creating, inspecting, activating, and archiving projects.
+  - `ContentView.swift`: Authenticated TabView navigation between Projects and Account.
+- [x] **Target Compilation:** iOS target builds cleanly (`** BUILD SUCCEEDED **`); macOS agent regression builds cleanly (`Build complete!`).
+- [x] **Automated Tests:** 37/37 backend tests passing cleanly (14 dedicated project domain tests including concurrent slug generation, concurrent activation safety, and default project ownership validation).
+- [x] **Quality Tooling:** Ruff check, Ruff format check, and Mypy strict mode 100% passing across 37 source files.
+- [x] **Stage Documentation:** All 12 files completed and synchronized in canonical path `docs/stages/phase-1/M2-projects/`.
 
 ---
 
-## 2. Gate Verification Status
-All Milestone M1 requirements and security invariants have been verified, tested, ratified, and documented.
-
-## 3. Boundary & Stop Condition
-Milestone M1 is officially **CLOSED**. In accordance with the canonical roadmap (M0 Foundation -> M1 Account & Identity -> M2 Projects -> M3 Memory Core), the next milestone is **Milestone M2 — Projects**. Milestone M2 requires explicit user authorization (`START M2 PROJECTS`) before execution begins. Standing Autonomous Execution halts here.
+## 2. Milestone M1 Foundation (Preserved Baseline)
+- All M1 deliverables (Apple Sign In, sessions, refresh token rotation, user preferences) remain operational and fully regression tested.
+- `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED` remains documented until physical hardware testing.
