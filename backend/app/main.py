@@ -15,6 +15,7 @@ from app.core.logging import logger, setup_logging
 from app.core.middleware import RequestIDMiddleware
 from app.core.redis import close_redis
 from app.domains.auth.security import AuthenticationError
+from app.domains.memories.exceptions import MemoryError
 from app.domains.projects.exceptions import ProjectError
 
 
@@ -86,13 +87,41 @@ def create_application() -> FastAPI:
             headers={"X-Request-ID": request_id},
         )
 
-    # Pydantic Request Validation Error Handler
+    # Memories Domain Exception Handler
+    @app.exception_handler(MemoryError)
+    async def memory_exception_handler(request: Request, exc: MemoryError) -> JSONResponse:
+        request_id = getattr(request.state, "request_id", "unknown")
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "success": False,
+                "error": {
+                    "code": exc.code,
+                    "message": exc.message,
+                    "details": None,
+                },
+            },
+            headers={"X-Request-ID": request_id},
+        )
+
+    # Pydantic Request Validation Error Handler (Sanitizes raw inputs to prevent secret reflection)
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(
         request: Request,
         exc: RequestValidationError,
     ) -> JSONResponse:
         request_id = getattr(request.state, "request_id", "unknown")
+        sanitized_details = []
+        for error in exc.errors():
+            sanitized: dict[str, Any] = {
+                "loc": error.get("loc"),
+                "msg": error.get("msg"),
+                "type": error.get("type"),
+            }
+            if "ctx" in error and isinstance(error["ctx"], dict):
+                sanitized["ctx"] = {k: str(v) for k, v in error["ctx"].items() if k != "error"}
+            sanitized_details.append(sanitized)
+
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={
@@ -100,7 +129,7 @@ def create_application() -> FastAPI:
                 "error": {
                     "code": "VALIDATION_ERROR",
                     "message": "Request payload validation failed.",
-                    "details": exc.errors(),
+                    "details": sanitized_details,
                 },
             },
             headers={"X-Request-ID": request_id},

@@ -102,6 +102,11 @@ class Project(Base):
         order_by="ProjectTechnology.name",
         lazy="selectin",
     )
+    memories: Mapped[list["Memory"]] = relationship(  # type: ignore[name-defined] # noqa: F821
+        "Memory",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
 
     __table_args__ = (
         UniqueConstraint("user_id", "slug", name="uq_projects_user_slug"),

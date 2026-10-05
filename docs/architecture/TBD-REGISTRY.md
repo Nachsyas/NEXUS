@@ -1,7 +1,7 @@
 # TBD Registry — Decisions To Be Decided
 
 **Status:** CANONICAL REGISTRY  
-**Version:** 1.7  
+**Version:** 1.8  
 
 Setiap item bertanda TBD di bawah ini belum diputuskan. Agent dilarang mengimplementasikan asumsi sepihak sebelum keputusan diresmikan via ADR berstatus ACCEPTED atau dokumen spesifikasi yang disetujui pengguna.
 
@@ -10,7 +10,7 @@ Setiap item bertanda TBD di bawah ini belum diputuskan. Agent dilarang mengimple
 | **TBD-001** | Primary cloud/deployment provider | Infrastructure | Memerlukan analisis biaya operasional dan kepatuhan hosting | AWS, GCP, Fly.io, Hetzner | M14 Beta / Production | OPEN | - |
 | **TBD-002** | Production S3-compatible provider | Knowledge & Storage | Evaluasi integrasi cloud storage | AWS S3, Cloudflare R2, MinIO Self-hosted | M10 Production Deploy | OPEN | - |
 | **TBD-003** | Primary LLM provider(s) | AI Orchestrator | Evaluasi kualitas penalaran, harga token, dan privasi | Anthropic Claude, OpenAI, Local Open-Weights | M4 AI Conversation | OPEN | ADR-011 |
-| **TBD-004** | Embedding model | Vector Store & RAG | Benchmark akurasi retrieval bahasa & kode | OpenAI text-embedding-3, Voyage AI, Local BGE/Nomic | M3 / M10 Feature | OPEN | ADR-004 |
+| **TBD-004** | Production Embedding Provider, Model & Dimension | Memory Core, Vector Store & RAG | Evaluasi provider, model, dan dimensi embedding production untuk semantic retrieval memory & knowledge tanpa vendor lock-in | OpenAI text-embedding-3 (1536/3072), Voyage AI (1024), Local BGE/Nomic (768) | M4 AI Conversation / M10 Knowledge Ingestion | OPEN | ADR-004, ADR-011 |
 | **TBD-005** | Background worker implementation | Workers | Menentukan framework antrian asinkron Python | Celery, ARQ, SAQ, Dramatiq | M10 Knowledge Ingestion | OPEN | - |
 | **TBD-006** | Queue/job implementation broker | Backend Workers | Bergantung pada pilihan worker engine | Redis Queue, RabbitMQ, PostgreSQL Queue | M10 Knowledge Ingestion | OPEN | - |
 | **TBD-007** | Production observability provider | Monitoring | Evaluasi tracing dan log telemetry | OpenTelemetry + Grafana/Loki, Datadog, Sentry | M14 Beta Reliability | OPEN | - |

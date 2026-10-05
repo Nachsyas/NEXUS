@@ -4,22 +4,22 @@
 **Canonical Remote:** `https://github.com/Nachsyas/NEXUS.git`  
 **Repository Visibility:** PUBLIC (Intentionally public repository)  
 **Primary Branch:** `main`  
+**Milestone Branch:** `milestone/m3-memory-core`  
 **Local Repository (Current Machine):** `/Users/user/Documents/Nexus`  
 **Current Phase:** Phase 1 (Core Personal Intelligence System)  
-**Current Milestone:** Milestone M2 (Projects Domain Foundation) — CLOSED — COMPLETE  
-**Current Stage:** Milestone M2 formally closed after successful integration to main (PR #1 MERGED)  
-**Production NEXUS Implementation:** M1 Account & Identity Subsystem + M2 Projects Domain Established & Verified on main  
-**iOS Project:** Canonical location `apps/ios/NEXUS.xcodeproj` (Target `NEXUS`, Swift 6 Approachable Concurrency, Sign in with Apple UI, Keychain security, build succeeded)  
+**Current Milestone:** Milestone M3 (Memory Core) — IMPLEMENTED & VALIDATED  
+**Current Stage:** Milestone M3 implementation complete, tested, documented, and prepared for PR  
+**Production NEXUS Implementation:** M1 Account & Identity + M2 Projects + M3 Memory Core  
+**iOS Project:** Canonical location `apps/ios/NEXUS.xcodeproj` (Target `NEXUS`, Swift 6 Approachable Concurrency, Sign in with Apple UI, Projects & Memories Control Center, build succeeded)  
 **macOS Agent:** Canonical location `apps/mac-agent/` (Native Swift Package executable foundation; Phase 1 packaging tracked in TBD-027)  
-**Backend:** Canonical location `backend/` (FastAPI modular monolith, `uv` baseline, PostgreSQL 16 + pgvector, Redis 7, Alembic migration 0003 applied, 37/37 Pytest passing)  
+**Backend:** Canonical location `backend/` (FastAPI modular monolith, `uv` baseline, PostgreSQL 16 + pgvector, Redis 7, Alembic migrations 0001-0004 applied, 54/54 Pytest passing)  
 **Apple Auth Status:** Code complete; mock verifier 100% passing; iOS UI builds; `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED`  
 **M0 Status:** CLOSED — COMPLETE  
 **M1 Status:** CLOSED — COMPLETE & RATIFIED  
 **M2 Status:** CLOSED — COMPLETE  
-**M2 Implementation Status:** COMPLETE  
-**M2 Integration to Main:** COMPLETE (PR #1 MERGED — commit `4a5342e33de7e01b602dc38a40e567f0ab352864`)  
-**Next Milestone:** Milestone M3 — Memory Core (Canonical Phase 1 order: M0 Foundation -> M1 Account & Identity -> M2 Projects -> M3 Memory Core; NOT STARTED, strictly awaiting explicit user authorization)  
-**Standing Autonomous Execution:** HALTED AT M2 BOUNDARY  
+**M3 Status:** IMPLEMENTATION COMPLETE — PRE-MERGE CORRECTIVE PASS COMPLETED — READY FOR FINAL PR MERGE  
+**Next Milestone:** Milestone M4 — AI Conversation (Canonical Phase 1 order: M0 Foundation -> M1 Account & Identity -> M2 Projects -> M3 Memory Core -> M4 AI Conversation; strictly awaiting PR review and explicit authorization)  
+**Standing Autonomous Execution:** HALTED AT M3 PR BOUNDARY  
 
 ---
 
@@ -27,34 +27,10 @@
 
 ### Accepted Architectural Baseline (ADR-001 s/d ADR-020)
 - **iOS Client:** Swift Native, SwiftUI, SwiftData (cache only), Keychain (`apps/ios/NEXUS.xcodeproj`) — Node produk terpisah dari Mac Agent (ADR-006).
-- **Mac Agent:** Swift Native, Outbound WSS protocol skeleton, Capability-based execution node (`apps/mac-agent/`) — Larangan mutlak shell arbitrer (ADR-007, ADR-008, ADR-009, ADR-010). Packaging M0 berstatus Foundation Executable; packaging final Phase 1 dievaluasi di TBD-027.
+- **Mac Agent:** Swift Native, Outbound WSS protocol skeleton, Capability-based execution node (`apps/mac-agent/`) — Larangan mutlak shell arbitrer (ADR-007, ADR-008, ADR-009, ADR-010).
 - **Backend:** Python, FastAPI (Modular Monolith, ADR-001, ADR-002), Async Database Engine, Redis Manager (`backend/`).
 - **Database:** PostgreSQL 16 dengan pgvector extension (`infrastructure/docker/`, ADR-003, ADR-004, ADR-019 / TBD-026 RESOLVED).
 - **Ephemeral / State:** Redis 7 (`infrastructure/docker/`, ADR-005).
 - **Package & Env Manager:** `uv` baseline Phase 1 (`backend/`, ADR-016 / TBD-013 RESOLVED).
 - **Primary ID Strategy:** RFC 9562 `UUIDv7` untuk seluruh entitas persisten (`backend/app/core/`, ADR-017 / TBD-014 RESOLVED).
-- **Quality Tooling:** `Ruff` (linter/formatter) + `Mypy` (strict mode) (ADR-018 / TBD-015 RESOLVED).
-- **Session & Token Architecture:** HS256 JWT access tokens (15m configurable TTL, owned by `Settings`), 256-bit opaque refresh tokens (30d configurable TTL) with SHA-256 hash storage and token family reuse revocation (ADR-020 ACCEPTED / TBD-028 & TBD-029 RESOLVED).
-
-### Milestone M1 Deliverables
-- **Alembic Migration 0002:** `users`, `auth_identities`, `user_preferences`, `sessions`, `rotated_token_hashes`. Validated forward and backward.
-- **Security & Quality:** Production secret entropy validator, algorithm confusion prevention (`algorithms=["HS256"]`), 6-dimension cross-user multi-tenancy isolation verified.
-- **Stage Documentation:** Canonical path `docs/stages/phase-1/M1-account-identity/` (12/12 artifacts complete).
-
-### Milestone M2 Deliverables
-- **Alembic Migration 0003:** `projects`, `project_technologies`, `user_preferences.default_project_id` foreign key. Validated forward and backward with orphan cleanup.
-- **Security & Invariants:** Partial unique index `uq_projects_user_active` enforcing single active project focus, (user_id, slug) uniqueness with savepoint retries, cross-user IDOR rejection (404), default project ownership validation in `UserService`, serialized activation with row-level locking.
-- **API Surface:** 7 endpoints under `/api/v1/projects` (CRUD, activate, archive, deterministic context foundation).
-- **iOS Client:** `ProjectModels.swift`, `ProjectManager.swift`, `ProjectsListView.swift`, `CreateProjectSheet.swift`, `ProjectDetailView.swift` with TabView integration in `ContentView.swift`.
-- **Quality Gates:** 37/37 Pytest passing, Ruff check/format clean, Mypy strict clean, iOS Simulator build succeeded, Mac Agent build succeeded.
-- **Stage Documentation:** Canonical path `docs/stages/phase-1/M2-projects/` (12/12 artifacts complete).
-
----
-
-## 2. Status Keputusan & Registry
-- **Accepted ADRs:** ADR-001 hingga ADR-020 ACCEPTED (Semua 20 ADR berstatus ACCEPTED).
-- **Proposed ADRs:** Tidak ada.
-- **TBD Registry:** TBD-013, TBD-014, TBD-015, TBD-026, TBD-028, TBD-029 RESOLVED. TBD-027 OPEN.
-- **Open Defect Issues:** 0 defect aktif.
-- **Latest Relevant Commit:** `4a5342e` Merge pull request #1 from Nachsyas/milestone/m2-projects  
-- **Last Updated:** 2026-10-05  
+- **Memory Vector Search:** `Vector(1536)` via pgvector with `<=>` cosine distance, decoupled behind `EmbeddingProvider` (TBD-030).

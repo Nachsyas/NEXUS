@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var authManager = AuthManager()
     @StateObject private var projectManager = ProjectManager()
+    @StateObject private var memoryManager = MemoryManager()
 
     var body: some View {
         Group {
@@ -15,8 +16,18 @@ struct ContentView: View {
                                 Label("Projects", systemImage: "folder.badge.gearshape")
                             }
 
+                        MemoriesListView(
+                            memoryManager: memoryManager,
+                            projectManager: projectManager,
+                            accessToken: token
+                        )
+                        .tabItem {
+                            Label("Memories", systemImage: "brain.head.profile")
+                        }
+
                         AuthView(authManager: authManager, onLogout: {
                             projectManager.clear()
+                            memoryManager.clear()
                         })
                         .tabItem {
                             Label("Account", systemImage: "person.crop.circle")

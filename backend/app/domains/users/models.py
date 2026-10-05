@@ -68,6 +68,11 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    memories: Mapped[list["Memory"]] = relationship(  # type: ignore[name-defined] # noqa: F821
+        "Memory",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
 
 class UserPreference(Base):

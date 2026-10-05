@@ -50,6 +50,22 @@ public protocol APIClientProtocol: Sendable {
     func activateProject(accessToken: String, id: String) async throws -> ProjectActivateResponse
     func archiveProject(accessToken: String, id: String) async throws -> ProjectArchiveResponse
     func fetchProjectContext(accessToken: String, id: String) async throws -> ProjectContext
+
+    // MARK: - Memories
+    func fetchMemories(
+        accessToken: String,
+        status: String?,
+        projectId: String?,
+        memoryType: String?,
+        page: Int,
+        limit: Int
+    ) async throws -> [Memory]
+
+    func fetchMemory(accessToken: String, id: String) async throws -> Memory
+    func createMemory(accessToken: String, payload: MemoryCreatePayload) async throws -> Memory
+    func updateMemory(accessToken: String, id: String, payload: MemoryUpdatePayload) async throws -> Memory
+    func forgetMemory(accessToken: String, id: String) async throws -> MemoryForgetResponse
+    func searchMemories(accessToken: String, payload: MemorySearchPayload) async throws -> [MemorySearchHit]
 }
 
 nonisolated public final class NexusAPIClient: APIClientProtocol, @unchecked Sendable {
@@ -367,6 +383,177 @@ nonisolated public final class NexusAPIClient: APIClientProtocol, @unchecked Sen
                 throw APIClientError.serverError(code: err.code, message: err.message)
             }
             throw APIClientError.serverError(code: "HTTP_\(httpResponse.statusCode)", message: "Failed to fetch project context.")
+        }
+    }
+
+    // MARK: - Memories Implementation
+    public func fetchMemories(
+        accessToken: String,
+        status: String? = nil,
+        projectId: String? = nil,
+        memoryType: String? = nil,
+        page: Int = 1,
+        limit: Int = 20
+    ) async throws -> [Memory] {
+        var components = URLComponents(url: baseURL.appendingPathComponent("memories"), resolvingAgainstBaseURL: true)
+        var queryItems: [URLQueryItem] = [
+            URLQueryItem(name: "page", value: "\(page)"),
+            URLQueryItem(name: "limit", value: "\(limit)")
+        ]
+        if let status = status { queryItems.append(URLQueryItem(name: "status", value: status)) }
+        if let projectId = projectId { queryItems.append(URLQueryItem(name: "project_id", value: projectId)) }
+        if let memoryType = memoryType { queryItems.append(URLQueryItem(name: "memory_type", value: memoryType)) }
+        components?.queryItems = queryItems
+
+        guard let url = components?.url else { throw APIClientError.invalidURL }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIClientError.invalidResponse
+        }
+
+        if httpResponse.statusCode == 200 {
+            let decoded = try jsonDecoder.decode(APIEnvelope<[Memory]>.self, from: data)
+            return decoded.data ?? []
+        } else {
+            if let decodedError = try? jsonDecoder.decode(APIEnvelope<EmptyPayload>.self, from: data),
+               let err = decodedError.error {
+                throw APIClientError.serverError(code: err.code, message: err.message)
+            }
+            throw APIClientError.serverError(code: "HTTP_\(httpResponse.statusCode)", message: "Failed to fetch memories.")
+        }
+    }
+
+    public func fetchMemory(accessToken: String, id: String) async throws -> Memory {
+        let endpoint = baseURL.appendingPathComponent("memories/\(id)")
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIClientError.invalidResponse
+        }
+
+        if httpResponse.statusCode == 200 {
+            let decoded = try jsonDecoder.decode(APIEnvelope<Memory>.self, from: data)
+            guard let memory = decoded.data else { throw APIClientError.invalidResponse }
+            return memory
+        } else {
+            if let decodedError = try? jsonDecoder.decode(APIEnvelope<EmptyPayload>.self, from: data),
+               let err = decodedError.error {
+                throw APIClientError.serverError(code: err.code, message: err.message)
+            }
+            throw APIClientError.serverError(code: "HTTP_\(httpResponse.statusCode)", message: "Failed to fetch memory.")
+        }
+    }
+
+    public func createMemory(accessToken: String, payload: MemoryCreatePayload) async throws -> Memory {
+        let endpoint = baseURL.appendingPathComponent("memories")
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        request.httpBody = try encoder.encode(payload)
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIClientError.invalidResponse
+        }
+
+        if httpResponse.statusCode == 201 {
+            let decoded = try jsonDecoder.decode(APIEnvelope<Memory>.self, from: data)
+            guard let memory = decoded.data else { throw APIClientError.invalidResponse }
+            return memory
+        } else {
+            if let decodedError = try? jsonDecoder.decode(APIEnvelope<EmptyPayload>.self, from: data),
+               let err = decodedError.error {
+                throw APIClientError.serverError(code: err.code, message: err.message)
+            }
+            throw APIClientError.serverError(code: "HTTP_\(httpResponse.statusCode)", message: "Failed to create memory.")
+        }
+    }
+
+    public func updateMemory(accessToken: String, id: String, payload: MemoryUpdatePayload) async throws -> Memory {
+        let endpoint = baseURL.appendingPathComponent("memories/\(id)")
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "PATCH"
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        request.httpBody = try encoder.encode(payload)
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIClientError.invalidResponse
+        }
+
+        if httpResponse.statusCode == 200 {
+            let decoded = try jsonDecoder.decode(APIEnvelope<Memory>.self, from: data)
+            guard let memory = decoded.data else { throw APIClientError.invalidResponse }
+            return memory
+        } else {
+            if let decodedError = try? jsonDecoder.decode(APIEnvelope<EmptyPayload>.self, from: data),
+               let err = decodedError.error {
+                throw APIClientError.serverError(code: err.code, message: err.message)
+            }
+            throw APIClientError.serverError(code: "HTTP_\(httpResponse.statusCode)", message: "Failed to update memory.")
+        }
+    }
+
+    public func forgetMemory(accessToken: String, id: String) async throws -> MemoryForgetResponse {
+        let endpoint = baseURL.appendingPathComponent("memories/\(id)/forget")
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIClientError.invalidResponse
+        }
+
+        if httpResponse.statusCode == 200 {
+            let decoded = try jsonDecoder.decode(APIEnvelope<MemoryForgetResponse>.self, from: data)
+            guard let res = decoded.data else { throw APIClientError.invalidResponse }
+            return res
+        } else {
+            if let decodedError = try? jsonDecoder.decode(APIEnvelope<EmptyPayload>.self, from: data),
+               let err = decodedError.error {
+                throw APIClientError.serverError(code: err.code, message: err.message)
+            }
+            throw APIClientError.serverError(code: "HTTP_\(httpResponse.statusCode)", message: "Failed to forget memory.")
+        }
+    }
+
+    public func searchMemories(accessToken: String, payload: MemorySearchPayload) async throws -> [MemorySearchHit] {
+        let endpoint = baseURL.appendingPathComponent("memories/search")
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let encoder = JSONEncoder()
+        request.httpBody = try encoder.encode(payload)
+
+        let (data, response) = try await urlSession.data(for: request)
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIClientError.invalidResponse
+        }
+
+        if httpResponse.statusCode == 200 {
+            let decoded = try jsonDecoder.decode(APIEnvelope<[MemorySearchHit]>.self, from: data)
+            return decoded.data ?? []
+        } else {
+            if let decodedError = try? jsonDecoder.decode(APIEnvelope<EmptyPayload>.self, from: data),
+               let err = decodedError.error {
+                throw APIClientError.serverError(code: err.code, message: err.message)
+            }
+            throw APIClientError.serverError(code: "HTTP_\(httpResponse.statusCode)", message: "Failed to search memories.")
         }
     }
 }
