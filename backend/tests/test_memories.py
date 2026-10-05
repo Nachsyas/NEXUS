@@ -755,3 +755,250 @@ async def test_memory_performance_and_latency(async_client: AsyncClient) -> None
     assert list_duration_ms < 2000
     assert search_duration_ms < 2000
     assert forget_duration_ms < 2000
+
+
+@pytest.mark.asyncio
+async def test_embedding_vector_validation_boundary() -> None:
+    """Verify runtime validation boundary for vector emptiness, finiteness, and dimension."""
+    from app.domains.memories.embedding import (
+        DeterministicTestEmbeddingProvider,
+        UnavailableEmbeddingProvider,
+        validate_embedding_vector,
+    )
+    from app.domains.memories.exceptions import (
+        EmbeddingUnavailableError,
+        EmbeddingValidationError,
+    )
+
+    # 1. Empty and None vectors rejected
+    with pytest.raises(EmbeddingValidationError, match="Embedding vector is empty"):
+        validate_embedding_vector([])
+
+    with pytest.raises(EmbeddingValidationError, match="Embedding vector is empty"):
+        validate_embedding_vector(None)
+
+    # 2. Non-finite values (NaN, +Inf, -Inf) rejected
+    with pytest.raises(EmbeddingValidationError, match="non-finite or invalid numeric value"):
+        validate_embedding_vector([1.0, float("nan"), 0.5])
+
+    with pytest.raises(EmbeddingValidationError, match="non-finite or invalid numeric value"):
+        validate_embedding_vector([1.0, float("inf"), 0.5])
+
+    with pytest.raises(EmbeddingValidationError, match="non-finite or invalid numeric value"):
+        validate_embedding_vector([1.0, float("-inf"), 0.5])
+
+    # 3. Dimension mismatch rejected without leaking raw vector elements
+    with pytest.raises(EmbeddingValidationError) as exc_info:
+        validate_embedding_vector([0.1, 0.2, 0.3], expected_dim=4)
+    assert "expected 4, got 3" in str(exc_info.value)
+    assert "0.1" not in str(exc_info.value)
+
+    # 4. Valid vector accepted
+    valid_vec = [0.1, 0.2, 0.3, 0.4]
+    result = validate_embedding_vector(valid_vec, expected_dim=4)
+    assert result == valid_vec
+
+    # 5. Provider protocol dimension property
+    test_provider = DeterministicTestEmbeddingProvider(dimension=768)
+    assert test_provider.dimension == 768
+
+    unavailable_provider = UnavailableEmbeddingProvider()
+    with pytest.raises(EmbeddingUnavailableError, match="TBD-004"):
+        _ = unavailable_provider.dimension
+
+
+@pytest.mark.asyncio
+async def test_memory_payload_size_and_json_safety_bounds(async_client: AsyncClient) -> None:
+    """Verify strict length bounds on value_text and serialized size/depth bounds on value_json."""
+    headers, _ = await create_test_user(async_client, "PayloadBoundaryTester")
+
+    # 1. value_text exactly 10,000 characters accepted
+    payload_exact_max = {
+        "memory_type": "PERSONAL_FACT",
+        "subject": "Max Payload",
+        "predicate": "has_exact_max_chars",
+        "value_text": "a" * 10000,
+    }
+    res_exact = await async_client.post("/api/v1/memories", headers=headers, json=payload_exact_max)
+    assert res_exact.status_code == 201
+
+    # 2. value_text 10,001 characters rejected with 422
+    payload_over_max = {
+        "memory_type": "PERSONAL_FACT",
+        "subject": "Over Max",
+        "predicate": "has_over_max_chars",
+        "value_text": "b" * 10001,
+    }
+    res_over = await async_client.post("/api/v1/memories", headers=headers, json=payload_over_max)
+    assert res_over.status_code == 422
+    # Ensure rejected long payload is not reflected in error response details
+    assert "b" * 10001 not in res_over.text
+
+    # 3. Oversized value_json (> 64KB) rejected with 422
+    payload_oversized_json = {
+        "memory_type": "PERSONAL_FACT",
+        "subject": "JSON Bound",
+        "predicate": "has_oversized_json",
+        "value_text": "Valid text with oversized metadata",
+        "value_json": {"data": "c" * 70000},
+    }
+    res_oversized = await async_client.post(
+        "/api/v1/memories", headers=headers, json=payload_oversized_json
+    )
+    assert res_oversized.status_code == 422
+    assert "c" * 70000 not in res_oversized.text
+
+    # 4. Deeply nested value_json (> depth 5) rejected with 422
+    payload_deep_json = {
+        "memory_type": "PERSONAL_FACT",
+        "subject": "Depth Bound",
+        "predicate": "has_deep_json",
+        "value_text": "Valid text with deep nesting",
+        "value_json": {"l1": {"l2": {"l3": {"l4": {"l5": {"l6": "too deep"}}}}}},
+    }
+    res_deep = await async_client.post("/api/v1/memories", headers=headers, json=payload_deep_json)
+    assert res_deep.status_code == 422
+
+    # 5. Ordinary well-structured value_json accepted
+    payload_valid_json = {
+        "memory_type": "PERSONAL_FACT",
+        "subject": "Valid JSON",
+        "predicate": "has_normal_json",
+        "value_text": "Valid text with normal metadata",
+        "value_json": {"theme": "dark", "fontSize": 14, "tags": ["ui", "editor"]},
+    }
+    res_valid = await async_client.post(
+        "/api/v1/memories", headers=headers, json=payload_valid_json
+    )
+    assert res_valid.status_code == 201
+    assert res_valid.json()["data"]["value_json"]["theme"] == "dark"
+
+
+@pytest.mark.asyncio
+async def test_unicode_deterministic_identity(async_client: AsyncClient) -> None:
+    """Verify canonically equivalent Unicode strings deduplicate to the same ACTIVE memory."""
+    headers, _ = await create_test_user(async_client, "UnicodeTester")
+
+    # Subject A: "Café" using precomposed character (U+00E9)
+    subject_precomposed = "Café"
+    # Subject B: "Café" using decomposed base letter 'e' + combining acute accent (U+0301)
+    subject_decomposed = "Café"
+
+    assert subject_precomposed != subject_decomposed  # Raw strings differ in code points
+
+    # 1. Post precomposed memory
+    payload_a = {
+        "memory_type": "PERSONAL_FACT",
+        "subject": subject_precomposed,
+        "predicate": "drinks",
+        "value_text": "Single Espresso",
+    }
+    res_a = await async_client.post("/api/v1/memories", headers=headers, json=payload_a)
+    assert res_a.status_code == 201
+    mem_id_a = res_a.json()["data"]["id"]
+
+    # 2. Post decomposed memory with identical value -> MUST deduplicate to the same row
+    payload_b = {
+        "memory_type": "PERSONAL_FACT",
+        "subject": subject_decomposed,
+        "predicate": "drinks",
+        "value_text": "Single Espresso",
+    }
+    res_b = await async_client.post("/api/v1/memories", headers=headers, json=payload_b)
+    assert res_b.status_code == 201
+    mem_id_b = res_b.json()["data"]["id"]
+    assert mem_id_a == mem_id_b, (
+        "Canonically equivalent Unicode subjects must resolve to the same memory"
+    )
+
+    # Verify query listing has exactly 1 ACTIVE memory
+    res_list = await async_client.get("/api/v1/memories", headers=headers)
+    assert res_list.status_code == 200
+    assert len(res_list.json()["data"]) == 1
+    assert res_list.json()["meta"]["total"] == 1
+
+    # 3. Post decomposed memory with conflicting value -> MUST supersede existing memory
+    payload_conflict = {
+        "memory_type": "PERSONAL_FACT",
+        "subject": subject_decomposed,
+        "predicate": "drinks",
+        "value_text": "Double Espresso",
+    }
+    res_c = await async_client.post("/api/v1/memories", headers=headers, json=payload_conflict)
+    assert res_c.status_code == 201
+    mem_id_c = res_c.json()["data"]["id"]
+    assert mem_id_c != mem_id_a
+
+    # Check original memory is superseded
+    res_old = await async_client.get(f"/api/v1/memories/{mem_id_a}", headers=headers)
+    assert res_old.status_code == 200
+    assert res_old.json()["data"]["status"] == "SUPERSEDED"
+    assert res_old.json()["data"]["superseded_by"] == mem_id_c
+
+    # 4. Post different Unicode subject ("Kaffee") -> MUST create separate distinct identity
+    payload_diff = {
+        "memory_type": "PERSONAL_FACT",
+        "subject": "Kaffee",
+        "predicate": "drinks",
+        "value_text": "Single Espresso",
+    }
+    res_d = await async_client.post("/api/v1/memories", headers=headers, json=payload_diff)
+    assert res_d.status_code == 201
+    mem_id_d = res_d.json()["data"]["id"]
+    assert mem_id_d != mem_id_c
+
+
+@pytest.mark.asyncio
+async def test_mixed_dimension_safety_in_semantic_search(async_client: AsyncClient) -> None:
+    """Verify semantic search safely filters out vectors of mismatched dimensions without database error."""
+    headers, _ = await create_test_user(async_client, "DimensionSafetyTester")
+
+    # 1. Seed a memory with 512-dimensional embedding
+    set_embedding_provider(DeterministicTestEmbeddingProvider(dimension=512))
+    payload_512 = {
+        "memory_type": "PERSONAL_FACT",
+        "subject": "Dim512 Fact",
+        "predicate": "stored_dim",
+        "value_text": "Stored with 512 dimensions",
+    }
+    res_create = await async_client.post("/api/v1/memories", headers=headers, json=payload_512)
+    assert res_create.status_code == 201
+
+    # 2. Switch provider to 256-dimensional embedding
+    set_embedding_provider(DeterministicTestEmbeddingProvider(dimension=256))
+
+    # 3. Perform semantic search: query vector is 256-dim; stored memory is 512-dim.
+    # PostgreSQL vector_dims filter MUST exclude 512-dim row so no <=> dimension mismatch error occurs.
+    res_search = await async_client.post(
+        "/api/v1/memories/search",
+        headers=headers,
+        json={"query": "Stored with 512 dimensions"},
+    )
+    assert res_search.status_code == 200
+    hits = res_search.json()["data"]
+    # 512-dim item was safely excluded, 0 hits returned without error
+    assert len(hits) == 0
+
+    # 4. Seed a new memory with the currently active 256-dim provider
+    payload_256 = {
+        "memory_type": "PERSONAL_FACT",
+        "subject": "Dim256 Fact",
+        "predicate": "stored_dim",
+        "value_text": "Stored with matching 256 dimensions",
+    }
+    res_256 = await async_client.post("/api/v1/memories", headers=headers, json=payload_256)
+    assert res_256.status_code == 201
+
+    # 5. Search again: matching 256-dim memory is retrieved
+    res_search_match = await async_client.post(
+        "/api/v1/memories/search",
+        headers=headers,
+        json={"query": "Stored with matching 256 dimensions"},
+    )
+    assert res_search_match.status_code == 200
+    hits_match = res_search_match.json()["data"]
+    assert len(hits_match) == 1
+    assert hits_match[0]["subject"] == "Dim256 Fact"
+
+    # Reset to default provider
+    reset_embedding_provider()

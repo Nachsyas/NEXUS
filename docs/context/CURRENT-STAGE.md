@@ -29,7 +29,7 @@ Milestone M3 established the semantic memory core and iOS memory control center 
   - `MemoriesListView.swift`, `CreateMemorySheet.swift`, `MemoryDetailView.swift`: SwiftUI views for browsing, filtering, searching, creating, editing, and forgetting memories.
   - `ContentView.swift`: Integrated Memories tab into main TabView navigation.
 - [x] **Target Compilation:** iOS target builds cleanly (`** BUILD SUCCEEDED **`); macOS agent builds cleanly (`Build complete!`).
-- [x] **Automated Tests:** 54/54 backend tests passing cleanly (17 dedicated M3 tests).
+- [x] **Automated Tests:** 58/58 backend tests passing cleanly (21 dedicated M3 tests).
 - [x] **Quality Tooling:** Ruff check, Ruff format check, and Mypy strict mode 100% passing.
-- [x] **Stage Documentation:** All 12 files completed in `docs/stages/phase-1/M3-memory-core/`.
+- [x] **Stage Documentation:** 12 canonical required stage files completed in  plus 2 supplemental review/remediation evidence files`docs/stages/phase-1/M3-memory-core/`.
 - [x] **Decision Registry:** Registered `TBD-004` in `docs/architecture/TBD-REGISTRY.md`.

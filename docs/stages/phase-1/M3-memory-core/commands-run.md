@@ -27,12 +27,9 @@ uv run pytest -v
 ```bash
 cd apps/ios
 xcodebuild -scheme NEXUS -destination "generic/platform=iOS Simulator" clean build
-
-cd ../mac-agent
-swift build
 ```
 
-## Pre-Merge Corrective Pass Commands
+## 5. Final Residual Corrective Pass Commands
 ```bash
 # Quality Gates & Testing
 cd backend
@@ -41,15 +38,11 @@ uv run ruff format .
 uv run mypy app tests
 uv run pytest -v
 
-# Database Migration Cycle Test
-alembic downgrade -1
-alembic upgrade head
+# Database Migration Cycle Test (Reversibility with identity columns and indexes)
+uv run alembic downgrade -1
+uv run alembic upgrade head
 
 # iOS Target Verification
 cd apps/ios
 xcodebuild -scheme NEXUS -destination "generic/platform=iOS Simulator" clean build
-
-# Mac Agent Target Verification
-cd apps/mac-agent
-swift build
 ```

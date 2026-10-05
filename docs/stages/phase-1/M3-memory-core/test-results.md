@@ -1,8 +1,8 @@
 # Milestone M3 Test Results
 
 ## 1. Automated Test Summary
-- **Backend Test Suite:** 54/54 passed
-  - `tests/test_memories.py`: 17/17 passed
+- **Backend Test Suite:** 58/58 passed
+  - `tests/test_memories.py`: 21/21 passed
   - `tests/test_auth_identity.py`: 15/15 passed
   - `tests/test_projects.py`: 14/14 passed
   - `tests/test_health.py`: 2/2 passed
@@ -11,8 +11,8 @@
   - `tests/test_startup.py`: 2/2 passed
 - **Linter & Formatter (Ruff):** Clean pass (0 errors, 52 files checked).
 - **Type Checker (Mypy):** Clean pass (0 errors in 46 source files).
+- **Alembic Reversibility:** Full downgrade and re-upgrade cycle verified (`0004_memories_core` -> `0003_projects_and_technologies` -> `0004_memories_core`).
 - **iOS Simulator Target (`xcodebuild`):** Clean build succeeded (`** BUILD SUCCEEDED **`).
-- **Mac Agent Target (`swift build`):** Clean build complete (0.80s).
 - **iOS Contract Verification:** Swift decoding of `MemorySensitivity.restricted` from `"RESTRICTED"` verified; Xcode project has no separate XCTest target (documented as `NOT AUTOMATED` for XCTest suite, verified via clean build and runtime decoding script).
 
 ## 2. Memory Test Breakdown (`tests/test_memories.py`)
@@ -33,3 +33,7 @@
 15. `test_multi_tenant_isolation_and_idor`: Verified cross-tenant GET, PATCH, FORGET return 404 safe IDOR.
 16. `test_semantic_search_with_and_without_provider`: Verified 503 when provider is unconfigured, and accurate cosine similarity ranking when test provider is active.
 17. `test_memory_performance_and_latency`: Broad sanity regression guard (< 2000ms) with observed local baseline (~10 - 45ms).
+18. `test_embedding_vector_validation_boundary`: Verified runtime boundary checking for empty, non-finite (NaN, +Inf, -Inf), and mismatched vector dimensions prior to DB execution; verified provider protocol `.dimension` property contract.
+19. `test_memory_payload_size_and_json_safety_bounds`: Verified `value_text` 1..10000 bounds (10000 accepted, 10001 rejected with 422), `value_json` max 64KB and max depth 5 bounds (oversized and deep nesting rejected with 422), and confirmed rejected payloads are not echoed in validation error responses.
+20. `test_unicode_deterministic_identity`: Verified canonically equivalent Unicode strings (precomposed "Café" vs decomposed "Cafe\u0301") deduplicate to the same ACTIVE memory without duplicate rows; conflicting value supersedes; distinct Unicode strings form separate identities.
+21. `test_mixed_dimension_safety_in_semantic_search`: Verified pgvector `vector_dims` SQL predicate safely filters out vectors of mismatched dimensions during vector similarity search without raising database operator errors.

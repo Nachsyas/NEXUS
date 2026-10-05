@@ -82,8 +82,8 @@ class MemoryService:
             Memory.user_id == user_id,
             Memory.project_id == data.project_id,
             Memory.memory_type == data.memory_type.value,
-            func.lower(func.trim(Memory.subject)) == norm_subject,
-            func.lower(func.trim(Memory.predicate)) == norm_predicate,
+            Memory.identity_subject == norm_subject,
+            Memory.identity_predicate == norm_predicate,
             Memory.status == MemoryStatus.ACTIVE.value,
         )
         existing = (await db.execute(lookup_stmt)).scalars().first()
@@ -117,7 +117,8 @@ class MemoryService:
         try:
             provider = get_embedding_provider()
             raw_vec = await provider.embed(data.value_text)
-            embedding_vector = validate_embedding_vector(raw_vec)
+            expected_dim = provider.dimension
+            embedding_vector = validate_embedding_vector(raw_vec, expected_dim=expected_dim)
         except (EmbeddingUnavailableError, MemoryError):
             embedding_vector = None
 
@@ -127,6 +128,8 @@ class MemoryService:
             memory_type=data.memory_type.value,
             subject=data.subject.strip(),
             predicate=data.predicate.strip(),
+            identity_subject=norm_subject,
+            identity_predicate=norm_predicate,
             value_text=data.value_text.strip(),
             value_json=data.value_json,
             summary=summary,
@@ -158,12 +161,9 @@ class MemoryService:
                     "user_id": str(user_id),
                 },
             )
-        else:
-            logger.info(
-                "memory_created",
-                extra={"memory_id": str(new_memory.id), "user_id": str(user_id)},
-            )
 
+        await db.commit()
+        await db.refresh(new_memory)
         return new_memory
 
     @staticmethod
@@ -172,13 +172,16 @@ class MemoryService:
         user_id: uuid.UUID,
         memory_id: uuid.UUID,
     ) -> Memory:
-        """Fetch memory with strict user-tenant scoping and lazy expiration normalization."""
-        stmt = select(Memory).where(Memory.id == memory_id, Memory.user_id == user_id)
+        """Fetch a single memory verifying ownership and updating lazy expiration status."""
+        stmt = select(Memory).where(
+            Memory.id == memory_id,
+            Memory.user_id == user_id,
+        )
         memory = (await db.execute(stmt)).scalar_one_or_none()
         if not memory:
             raise MemoryNotFoundError("Memory not found.")
 
-        # Lazy expiration check on detail retrieval
+        # Lazy normalization of expired state
         now = utc_now()
         if (
             memory.status == MemoryStatus.ACTIVE.value
@@ -201,16 +204,16 @@ class MemoryService:
         page: int = 1,
         limit: int = 20,
     ) -> tuple[list[Memory], int]:
-        """List caller-owned memories with bounded pagination and coherent expiration filtering."""
+        """List memories with scoped security, explicit filtering, and bounded pagination."""
+        now = utc_now()
         bounded_limit = max(1, min(limit, 100))
         offset = max(0, (page - 1) * bounded_limit)
-        now = utc_now()
 
         conditions = [Memory.user_id == user_id]
 
         if status is not None:
             if status == MemoryStatus.EXPIRED.value:
-                # Include explicitly EXPIRED memories as well as ACTIVE memories whose expires_at <= now
+                # Include explicitly marked EXPIRED and active items past expiration
                 conditions.append(
                     or_(
                         Memory.status == MemoryStatus.EXPIRED.value,
@@ -310,7 +313,8 @@ class MemoryService:
                 provider = get_embedding_provider()
                 try:
                     raw_vec = await provider.embed(new_val)
-                    memory.embedding = validate_embedding_vector(raw_vec)
+                    expected_dim = provider.dimension
+                    memory.embedding = validate_embedding_vector(raw_vec, expected_dim=expected_dim)
                 except (EmbeddingUnavailableError, MemoryError):
                     # Stale embedding prevention invariant:
                     # Never retain prior vector when semantic text has changed!
@@ -370,7 +374,8 @@ class MemoryService:
         # 1. Require embedding provider to generate validated query vector
         provider = get_embedding_provider()
         raw_query_vec = await provider.embed(query)
-        query_vector = validate_embedding_vector(raw_query_vec)
+        expected_dim = provider.dimension
+        query_vector = validate_embedding_vector(raw_query_vec, expected_dim=expected_dim)
 
         # 2. Verify project ownership if project scope is supplied
         if project_id is not None:
@@ -392,6 +397,7 @@ class MemoryService:
             Memory.user_id == user_id,
             Memory.status == MemoryStatus.ACTIVE.value,
             Memory.embedding.is_not(None),
+            func.vector_dims(Memory.embedding) == expected_dim,
             or_(Memory.expires_at.is_(None), Memory.expires_at > now),
         ]
 

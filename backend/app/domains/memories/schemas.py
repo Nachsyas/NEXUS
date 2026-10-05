@@ -1,14 +1,51 @@
 import datetime
+import json
 import uuid
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.domains.memories.models import (
     PROJECT_SCOPED_MEMORY_TYPES,
     MemorySensitivity,
     MemoryType,
 )
+
+MAX_MEMORY_VALUE_TEXT_CHARS = 10000
+MAX_MEMORY_VALUE_JSON_BYTES = 65536  # 64 KB safety bound
+MAX_MEMORY_VALUE_JSON_DEPTH = 5
+
+
+def validate_value_json_bound(v: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Enforce serialized byte size and recursion depth bounds on structured value_json."""
+    if v is None:
+        return None
+
+    def _check_depth(obj: Any, current_depth: int = 1) -> None:
+        if current_depth > MAX_MEMORY_VALUE_JSON_DEPTH:
+            raise ValueError(
+                f"value_json exceeds maximum allowed nesting depth of {MAX_MEMORY_VALUE_JSON_DEPTH}."
+            )
+        if isinstance(obj, dict):
+            for val in obj.values():
+                _check_depth(val, current_depth + 1)
+        elif isinstance(obj, (list, tuple)):
+            for item in obj:
+                _check_depth(item, current_depth + 1)
+
+    _check_depth(v)
+
+    try:
+        raw = json.dumps(v)
+    except (TypeError, ValueError) as err:
+        raise ValueError("value_json must be valid JSON-serializable data.") from err
+
+    if len(raw.encode("utf-8")) > MAX_MEMORY_VALUE_JSON_BYTES:
+        raise ValueError(
+            f"value_json serialized size exceeds maximum limit of {MAX_MEMORY_VALUE_JSON_BYTES} bytes."
+        )
+
+    return v
 
 
 class MemoryCreate(BaseModel):
@@ -17,12 +54,17 @@ class MemoryCreate(BaseModel):
     memory_type: MemoryType
     subject: str = Field(..., min_length=1, max_length=255)
     predicate: str = Field(..., min_length=1, max_length=255)
-    value_text: str = Field(..., min_length=1)
+    value_text: str = Field(..., min_length=1, max_length=MAX_MEMORY_VALUE_TEXT_CHARS)
     value_json: dict[str, Any] | None = None
     project_id: uuid.UUID | None = None
     importance: float = Field(default=0.5, ge=0.0, le=1.0)
     sensitivity: MemorySensitivity = MemorySensitivity.LOW
     expires_at: datetime.datetime | None = None
+
+    @field_validator("value_json")
+    @classmethod
+    def check_value_json_bound(cls, v: dict[str, Any] | None) -> dict[str, Any] | None:
+        return validate_value_json_bound(v)
 
     @model_validator(mode="after")
     def validate_project_scope(self) -> "MemoryCreate":
@@ -42,11 +84,18 @@ class MemoryCreate(BaseModel):
 class MemoryUpdate(BaseModel):
     """Schema for updating mutable fields of an active memory."""
 
-    value_text: str | None = Field(default=None, min_length=1)
+    value_text: str | None = Field(
+        default=None, min_length=1, max_length=MAX_MEMORY_VALUE_TEXT_CHARS
+    )
     value_json: dict[str, Any] | None = None
     importance: float | None = Field(default=None, ge=0.0, le=1.0)
     sensitivity: MemorySensitivity | None = None
     expires_at: datetime.datetime | None = None
+
+    @field_validator("value_json")
+    @classmethod
+    def check_value_json_bound(cls, v: dict[str, Any] | None) -> dict[str, Any] | None:
+        return validate_value_json_bound(v)
 
 
 class MemoryResponse(BaseModel):

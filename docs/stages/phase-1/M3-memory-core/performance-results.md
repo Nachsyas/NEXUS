@@ -19,8 +19,9 @@ Measured in `backend/tests/test_memories.py::test_memory_performance_and_latency
   - `(user_id, status)` for fast active memory listing.
   - `(user_id, project_id, status)` for project context retrieval.
   - `(user_id, memory_type, status)` for type-filtered queries.
+  - `(user_id, project_id, memory_type, identity_subject, identity_predicate, status)` (`ix_memories_identity_lookup`) for deterministic deduplication and superseding queries.
   - `expires_at` for TTL exclusion filtering.
   - `(user_id, updated_at)` for recent memory ordering.
 - **Index Strategy Decision (TBD-025):**
-  - Per architecture guidelines, pgvector flat exact scan (`<=>`) is used for initial dataset sizes.
+  - Per architecture guidelines, pgvector flat exact scan (`<=>`) filtered by `vector_dims` is used for initial dataset sizes.
   - HNSW or IVFFlat indexing will be benchmarked under realistic scale per `TBD-025`.

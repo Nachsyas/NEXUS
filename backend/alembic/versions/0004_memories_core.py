@@ -40,6 +40,8 @@ def upgrade() -> None:
         sa.Column("memory_type", sa.String(length=50), nullable=False),
         sa.Column("subject", sa.String(length=255), nullable=False),
         sa.Column("predicate", sa.String(length=255), nullable=False),
+        sa.Column("identity_subject", sa.String(length=255), nullable=False),
+        sa.Column("identity_predicate", sa.String(length=255), nullable=False),
         sa.Column("value_text", sa.Text(), nullable=False),
         sa.Column(
             "value_json",
@@ -84,6 +86,18 @@ def upgrade() -> None:
     op.create_index(
         "ix_memories_user_type_status", "memories", ["user_id", "memory_type", "status"]
     )
+    op.create_index(
+        "ix_memories_identity_lookup",
+        "memories",
+        [
+            "user_id",
+            "project_id",
+            "memory_type",
+            "identity_subject",
+            "identity_predicate",
+            "status",
+        ],
+    )
     op.create_index("ix_memories_expires_at", "memories", ["expires_at"])
     op.create_index("ix_memories_user_updated_at", "memories", ["user_id", "updated_at"])
 
@@ -91,6 +105,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index("ix_memories_user_updated_at", table_name="memories")
     op.drop_index("ix_memories_expires_at", table_name="memories")
+    op.drop_index("ix_memories_identity_lookup", table_name="memories", if_exists=True)
     op.drop_index("ix_memories_user_type_status", table_name="memories")
     op.drop_index("ix_memories_user_project_status", table_name="memories")
     op.drop_index("ix_memories_user_status", table_name="memories")

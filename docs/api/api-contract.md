@@ -228,7 +228,7 @@
     "subject": "string (1..255)",
     "predicate": "string (1..255)",
     "value_text": "string (1..10000)",
-    "value_json": null,
+    "value_json": "dict (max 64KB, max depth 5) | null | optional",
     "project_id": "uuid | null",
     "importance": 0.5,
     "sensitivity": "LOW | MEDIUM | HIGH | RESTRICTED",
@@ -322,8 +322,8 @@
 - **Request Body:**
   ```json
   {
-    "value_text": "string | optional",
-    "value_json": "dict | null | optional",
+    "value_text": "string (1..10000) | optional",
+    "value_json": "dict (max 64KB, max depth 5) | null | optional",
     "importance": "float (0.0..1.0) | optional",
     "sensitivity": "LOW | MEDIUM | HIGH | RESTRICTED | optional",
     "expires_at": "ISO-8601 UTC | null | optional"
