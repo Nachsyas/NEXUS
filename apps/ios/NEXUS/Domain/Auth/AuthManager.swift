@@ -12,6 +12,10 @@ public final class AuthManager: ObservableObject {
     private let accessTokenKey = "nexus_access_token"
     private let refreshTokenKey = "nexus_refresh_token"
 
+    public var currentAccessToken: String? {
+        keychain.readString(key: accessTokenKey)
+    }
+
     public init(
         keychain: KeychainServiceProtocol? = nil,
         apiClient: APIClientProtocol? = nil

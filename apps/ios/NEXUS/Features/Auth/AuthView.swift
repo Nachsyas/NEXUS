@@ -3,9 +3,11 @@ import SwiftUI
 
 public struct AuthView: View {
     @ObservedObject var authManager: AuthManager
+    var onLogout: (() -> Void)? = nil
 
-    public init(authManager: AuthManager) {
+    public init(authManager: AuthManager, onLogout: (() -> Void)? = nil) {
         self.authManager = authManager
+        self.onLogout = onLogout
     }
 
     public var body: some View {
@@ -84,6 +86,7 @@ public struct AuthView: View {
                         Button(role: .destructive) {
                             Task {
                                 await authManager.logout()
+                                onLogout?()
                             }
                         } label: {
                             Label("Log Out", systemImage: "rectangle.portrait.and.arrow.right")
