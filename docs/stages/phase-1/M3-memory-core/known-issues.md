@@ -9,6 +9,6 @@
    - *Status:* OPEN.
    - *Impact:* Pgvector table currently uses exact flat sequential scan for similarity search (`<=>`). While optimal and ultra-fast (<35ms) for early tenant sizes, scale testing will evaluate HNSW vs IVFFlat indexes when dataset sizes warrant index maintenance overhead.
 
-3. **Production Embedding Provider Selection (TBD-030):**
+3. **Production Embedding Provider Selection & Dimension (TBD-004):**
    - *Status:* OPEN.
-   - *Impact:* Production semantic search returns HTTP 503 until a production embedding model (e.g. OpenAI `text-embedding-3-small` or self-hosted BGE) is selected and integrated via governance.
+   - *Impact:* Production semantic search returns HTTP 503 until a production embedding model and provider (e.g. OpenAI `text-embedding-3`, Voyage AI, or self-hosted BGE/Nomic) is selected and integrated via governance. The database schema uses provider-neutral unconstrained `Vector()` to avoid prematurely locking vector dimensions before provider ratification.

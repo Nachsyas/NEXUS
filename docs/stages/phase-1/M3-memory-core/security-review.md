@@ -8,10 +8,11 @@
   - Vendor API keys: OpenAI (`sk-...`), GitHub (`ghp_...`, `github_pat_...`), AWS (`AKIA...`).
   - Assignment heuristics for passwords, credentials, OTP codes, and seed phrases.
 - **Verification:**
-  - Evaluated against standard credential datasets.
+  - Evaluated against the explicit synthetic credential-pattern test matrix.
   - Zero leakage verified: error responses return generic `MEMORY_SECRET_REJECTED` code without reflecting matched text.
+  - Pre-validation secret redaction: global `RequestValidationError` handler strips raw user input from 422 validation error bodies to prevent secret leakage on malformed requests.
   - Zero log leakage: logger emits structured telemetry (`memory_rejected_by_safety_policy`) with no payload details.
-  - Evaluated against benign text: discussions of cryptographic concepts, password managers, and JWT session mechanics pass without false positives.
+  - Evaluated against benign text: discussions of cryptographic concepts, password managers, and JWT session mechanics show no false positives observed in the current benign test matrix.
 
 ## 2. Multi-Tenant Authorization & IDOR Protection
 - **Ownership Invariants:**

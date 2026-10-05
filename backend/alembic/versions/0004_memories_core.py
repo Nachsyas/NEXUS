@@ -47,7 +47,7 @@ def upgrade() -> None:
             nullable=True,
         ),
         sa.Column("summary", sa.Text(), nullable=False),
-        sa.Column("embedding", Vector(1536), nullable=True),
+        sa.Column("embedding", Vector(), nullable=True),
         sa.Column("importance", sa.Float(), nullable=False, server_default="0.5"),
         sa.Column("confidence", sa.Float(), nullable=False, server_default="1.0"),
         sa.Column("sensitivity", sa.String(length=20), nullable=False, server_default="LOW"),

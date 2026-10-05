@@ -24,16 +24,16 @@
 - **Supersede Mechanism:**
   When an incoming memory matches the identity key but provides a different value, the existing memory is updated to `status = 'SUPERSEDED'`, `superseded_by = :new_id`, and the new memory is inserted as `ACTIVE`.
 
-## 3. Vector Storage & Provider Boundary (TBD-030)
+## 3. Vector Storage & Provider Boundary (TBD-004)
 - **Database Column:**
-  `embedding` is stored as `Vector(1536)` using `pgvector.sqlalchemy`.
+  `embedding` is stored as unconstrained `Vector()` using `pgvector.sqlalchemy`, avoiding premature dimension locking.
 - **Search Operator:**
   Cosine distance `<=>` is executed via SQLAlchemy (`Memory.embedding.cosine_distance(query_vector)`).
   Similarity score is derived as `max(0.0, min(1.0, 1.0 - distance))`.
 - **Provider Protocol:**
   Per ADR-004 and ADR-011, production embedding generation is decoupled behind `EmbeddingProvider`.
-  In production, until governance resolves `TBD-030`, `UnavailableEmbeddingProvider` raises `EmbeddingUnavailableError` (HTTP 503).
-  For automated integration testing, `DeterministicTestEmbeddingProvider` computes unit-normalized 1536-dimensional vectors deterministically via SHA-512/SHA-256 digests.
+  In production, until governance resolves `TBD-004`, `UnavailableEmbeddingProvider` raises `EmbeddingUnavailableError` (HTTP 503).
+  For automated integration testing, `DeterministicTestEmbeddingProvider` computes unit-normalized 1536-dimensional vectors deterministically via SHA-512/SHA-256 digests. Vector validation layer (`validate_embedding_vector`) strictly verifies non-emptiness, finiteness, and dimension consistency without exposing raw vector data.
 - **Index Strategy (TBD-025):**
   Per `TBD-025`, no premature HNSW or IVFFlat index is created; flat exact scan is maintained for initial scale.
 

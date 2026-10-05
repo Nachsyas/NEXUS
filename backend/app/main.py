@@ -3,7 +3,6 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Request, status
-from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -105,13 +104,24 @@ def create_application() -> FastAPI:
             headers={"X-Request-ID": request_id},
         )
 
-    # Pydantic Request Validation Error Handler
+    # Pydantic Request Validation Error Handler (Sanitizes raw inputs to prevent secret reflection)
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(
         request: Request,
         exc: RequestValidationError,
     ) -> JSONResponse:
         request_id = getattr(request.state, "request_id", "unknown")
+        sanitized_details = []
+        for error in exc.errors():
+            sanitized: dict[str, Any] = {
+                "loc": error.get("loc"),
+                "msg": error.get("msg"),
+                "type": error.get("type"),
+            }
+            if "ctx" in error and isinstance(error["ctx"], dict):
+                sanitized["ctx"] = {k: str(v) for k, v in error["ctx"].items() if k != "error"}
+            sanitized_details.append(sanitized)
+
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={
@@ -119,7 +129,7 @@ def create_application() -> FastAPI:
                 "error": {
                     "code": "VALIDATION_ERROR",
                     "message": "Request payload validation failed.",
-                    "details": jsonable_encoder(exc.errors()),
+                    "details": sanitized_details,
                 },
             },
             headers={"X-Request-ID": request_id},

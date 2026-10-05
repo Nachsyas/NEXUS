@@ -17,7 +17,7 @@
   - Validated zero false-positive detection on benign text.
 - **`backend/app/domains/memories/embedding.py`:**
   - Implemented `EmbeddingProvider` protocol.
-  - Implemented default `UnavailableEmbeddingProvider` (TBD-030).
+  - Implemented default `UnavailableEmbeddingProvider` (TBD-004).
   - Implemented `DeterministicTestEmbeddingProvider` (unit-normalized 1536-dim vector generator for test suites).
 
 ### Service & API Routing

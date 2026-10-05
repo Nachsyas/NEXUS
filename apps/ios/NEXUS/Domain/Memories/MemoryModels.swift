@@ -88,6 +88,7 @@ public enum MemorySensitivity: String, Codable, Sendable, CaseIterable, Identifi
     case low = "LOW"
     case medium = "MEDIUM"
     case high = "HIGH"
+    case restricted = "RESTRICTED"
 
     public var id: String { rawValue }
 
@@ -96,6 +97,7 @@ public enum MemorySensitivity: String, Codable, Sendable, CaseIterable, Identifi
         case .low: return "Low"
         case .medium: return "Medium"
         case .high: return "High"
+        case .restricted: return "Restricted"
         }
     }
 }

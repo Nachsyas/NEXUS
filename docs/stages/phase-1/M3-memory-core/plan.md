@@ -24,7 +24,7 @@
    - Implement query-time expiration exclusion.
    - Implement idempotent `forget_memory` transitioning status to `FORGOTTEN`.
    - Implement pgvector cosine similarity search (`search_memories`).
-   - Decouple embedding generation behind `EmbeddingProvider` protocol with default `UnavailableEmbeddingProvider` (HTTP 503 per `TBD-030`) and test-only `DeterministicTestEmbeddingProvider`.
+   - Decouple embedding generation behind `EmbeddingProvider` protocol with default `UnavailableEmbeddingProvider` (HTTP 503 per `TBD-004`) and test-only `DeterministicTestEmbeddingProvider`.
 5. **Transport & Routing:**
    - Create `backend/app/api/v1/memories.py` covering all 6 canonical endpoints.
    - Register router in `backend/app/api/v1/router.py`.
@@ -40,5 +40,5 @@
 8. **Validation & Quality Gates:**
    - Run Ruff, Mypy, Pytest, Xcodebuild, and Swift build.
    - Author all 12 stage documentation files.
-   - Record `TBD-030` in `TBD-REGISTRY.md`.
+   - Record `TBD-004` in `TBD-REGISTRY.md`.
    - Update canonical handoff files, commit, push, and open PR.

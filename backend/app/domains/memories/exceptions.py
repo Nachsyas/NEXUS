@@ -33,6 +33,11 @@ class MemoryScopeError(MemoryError):
 class EmbeddingUnavailableError(MemoryError):
     def __init__(
         self,
-        message: str = "Production embedding provider is not configured. (TBD-030)",
+        message: str = "Production embedding provider is not configured. (TBD-004)",
     ) -> None:
         super().__init__(code="MEMORY_EMBEDDING_UNAVAILABLE", message=message, status_code=503)
+
+
+class EmbeddingValidationError(MemoryError):
+    def __init__(self, message: str = "Invalid embedding vector generated.") -> None:
+        super().__init__(code="MEMORY_EMBEDDING_INVALID", message=message, status_code=500)

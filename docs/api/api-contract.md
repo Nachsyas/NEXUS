@@ -219,42 +219,164 @@
 ## 6. Memory & Control Center
 
 ### `POST /memories`
-- **Tujuan:** Menambahkan entri memori personal/proyek terstruktur secara manual atau via reasoning engine.
+- **Tujuan:** Menambahkan entri memori personal atau proyek terstruktur secara manual dengan validasi taksonomi ketat, pemindaian keamanan NEVER_STORE, dan deduplikasi deterministik.
+- **Provenance Invariant:** Endpoint publik manual ini secara otomatis menetapkan `source_type: "USER_EXPLICIT"` dan `confidence: 1.0` di level server.
 - **Request Body:**
   ```json
   {
-    "memory_type": "PERSONAL_FACT | PREFERENCE | INTEREST | SKILL | GOAL | PROJECT_FACT | PROJECT_DECISION | PROJECT_PROGRESS | PROJECT_NEXT_ACTION | BEHAVIOR_PATTERN",
-    "subject": "string",
-    "predicate": "string",
-    "value_text": "string",
+    "memory_type": "PERSONAL_FACT | PREFERENCE | INTEREST | SKILL | GOAL | BEHAVIOR_PATTERN | PROJECT_FACT | PROJECT_DECISION | PROJECT_PROGRESS | PROJECT_NEXT_ACTION",
+    "subject": "string (1..255)",
+    "predicate": "string (1..255)",
+    "value_text": "string (1..10000)",
     "value_json": null,
-    "project_id": "uuid | null"
+    "project_id": "uuid | null",
+    "importance": 0.5,
+    "sensitivity": "LOW | MEDIUM | HIGH | RESTRICTED",
+    "expires_at": "ISO-8601 UTC | null"
   }
   ```
-- **Response Data:** `{ "id": "uuid", "subject": "string", "predicate": "string", "value_text": "string", "status": "ACTIVE" }`
+- **Response Envelope:** `201 Created`
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "user_id": "uuid",
+      "project_id": "uuid | null",
+      "memory_type": "string",
+      "subject": "string",
+      "predicate": "string",
+      "value_text": "string",
+      "value_json": null,
+      "summary": "string",
+      "importance": 0.5,
+      "confidence": 1.0,
+      "sensitivity": "LOW",
+      "source_type": "USER_EXPLICIT",
+      "source_id": null,
+      "status": "ACTIVE",
+      "created_at": "ISO-8601 UTC",
+      "updated_at": "ISO-8601 UTC",
+      "expires_at": null,
+      "superseded_by": null
+    },
+    "meta": null
+  }
+  ```
+  *(Catatan: Vektor embedding internal tidak pernah diekspos dalam respons API).*
 
 ### `GET /memories`
-- **Tujuan:** Mengambil daftar memori aktif pengguna dengan filter status, kategori, atau proyek.
-- **Query Params:** `status=ACTIVE | SUPERSEDED | EXPIRED | FORGOTTEN | PENDING_CONFIRMATION`, `project_id=uuid`, `memory_type=string`
-- **Response Data:** `[ { "id": "uuid", "subject": "string", "predicate": "string", "value_text": "string", "memory_type": "string", "status": "string", "created_at": "ISO-8601 UTC" } ]`
+- **Tujuan:** Mengambil daftar memori aktif milik caller dengan filter status kanonikal, filter tipe kanonikal, proyek, dan paginasi terbatas.
+- **Query Params:**
+  - `status`: `MemoryStatus` (`ACTIVE`, `SUPERSEDED`, `EXPIRED`, `FORGOTTEN`, `PENDING_CONFIRMATION`). Default: `ACTIVE` non-expired. Tipe invalid ditolak dengan HTTP 422.
+  - `memory_type`: `MemoryType` (10 tipe kanonikal). Tipe invalid ditolak dengan HTTP 422.
+  - `project_id`: `uuid | null` (Filter memori proyek tertentu milik caller).
+  - `page`: `int >= 1` (default 1).
+  - `limit`: `int 1..100` (default 20).
+- **Response Envelope:** `200 OK`
+  ```json
+  {
+    "success": true,
+    "data": [
+      {
+        "id": "uuid",
+        "user_id": "uuid",
+        "project_id": "uuid | null",
+        "memory_type": "string",
+        "subject": "string",
+        "predicate": "string",
+        "value_text": "string",
+        "value_json": null,
+        "summary": "string",
+        "importance": 0.5,
+        "confidence": 1.0,
+        "sensitivity": "LOW",
+        "source_type": "USER_EXPLICIT",
+        "source_id": null,
+        "status": "ACTIVE",
+        "created_at": "ISO-8601 UTC",
+        "updated_at": "ISO-8601 UTC",
+        "expires_at": null,
+        "superseded_by": null
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "limit": 20,
+      "total": 1,
+      "total_pages": 1
+    }
+  }
+  ```
 
 ### `GET /memories/{memory_id}`
-- **Tujuan:** Mengambil detail lengkap entri memori terstruktur tertentu.
-- **Response Data:** `{ "id": "uuid", "memory_type": "string", "subject": "string", "predicate": "string", "value_text": "string", "summary": "string", "importance": 0.8, "confidence": 0.9, "status": "string", "project_id": "uuid | null", "created_at": "ISO-8601 UTC", "superseded_by": "uuid | null" }`
+- **Tujuan:** Mengambil detail lengkap satu entri memori dengan isolasi ketat multi-tenant. Melakukan normalisasi lazy jika memori telah melewati `expires_at`.
+- **Response Envelope:** `200 OK` (bentuk objek data identik dengan `MemoryResponse`).
 
 ### `PATCH /memories/{memory_id}`
-- **Tujuan:** Memperbarui konten, nilai, atau kategori memori.
-- **Request Body:** `{ "value_text": "string", "value_json": null }`
-- **Response Data:** `{ "id": "uuid", "value_text": "string", "status": "string" }`
+- **Tujuan:** Memperbarui field termutasi dari memori aktif. Mendukung semantik *null-clearing* eksplisit via `model_fields_set`.
+- **Invariants:**
+  - Jika `value_text` berubah, `summary` otomatis diperbarui, dan `embedding` diperbarui atau disetel `NULL` jika provider embedding unavailable (mencegah *stale embedding*).
+  - Mengirim `{"value_json": null}` atau `{"expires_at": null}` membersihkan field tersebut.
+  - Mengabaikan field mempertahankan nilai yang sudah ada.
+- **Request Body:**
+  ```json
+  {
+    "value_text": "string | optional",
+    "value_json": "dict | null | optional",
+    "importance": "float (0.0..1.0) | optional",
+    "sensitivity": "LOW | MEDIUM | HIGH | RESTRICTED | optional",
+    "expires_at": "ISO-8601 UTC | null | optional"
+  }
+  ```
+- **Response Envelope:** `200 OK` dengan entitas `MemoryResponse` yang telah diperbarui.
 
 ### `POST /memories/search`
-- **Tujuan:** Pencarian semantik memori berbasis embedding kemiripan vektor.
-- **Request Body:** `{ "query": "string", "project_id": "uuid | null", "limit": integer }`
-- **Response Data:** `[ { "id": "uuid", "subject": "string", "predicate": "string", "value_text": "string", "similarity_score": float } ]`
+- **Tujuan:** Melakukan pencarian kemiripan semantik berbasis jarak kosinus pgvector (`<=>`) pada memori aktif caller.
+- **Provider Boundary:** Jika provider embedding production belum dikonfigurasi (TBD-004), endpoint merespons dengan `HTTP 503 MEMORY_EMBEDDING_UNAVAILABLE`.
+- **Request Body:**
+  ```json
+  {
+    "query": "string (1..1000)",
+    "project_id": "uuid | null",
+    "limit": 10
+  }
+  ```
+- **Response Envelope:** `200 OK`
+  ```json
+  {
+    "success": true,
+    "data": [
+      {
+        "id": "uuid",
+        "memory_type": "string",
+        "subject": "string",
+        "predicate": "string",
+        "value_text": "string",
+        "summary": "string",
+        "project_id": "uuid | null",
+        "similarity_score": 0.985,
+        "created_at": "ISO-8601 UTC"
+      }
+    ],
+    "meta": null
+  }
+  ```
 
 ### `POST /memories/{memory_id}/forget`
-- **Tujuan:** Mengubah status memori menjadi `FORGOTTEN` agar tidak lagi digunakan dalam penyusunan konteks.
-- **Response Data:** `{ "id": "uuid", "status": "FORGOTTEN", "forgotten_at": "ISO-8601 UTC" }`
+- **Tujuan:** Menandai memori sebagai `FORGOTTEN` secara idempoten dan mengeluarkannya dari pencarian dan konteks reasoning aktif.
+- **Response Envelope:** `200 OK`
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "uuid",
+      "status": "FORGOTTEN",
+      "forgotten_at": "ISO-8601 UTC"
+    },
+    "meta": null
+  }
+  ```
 
 ---
 

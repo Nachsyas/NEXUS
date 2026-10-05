@@ -101,7 +101,7 @@ class Memory(Base):
     value_text: Mapped[str] = mapped_column(Text, nullable=False)
     value_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     summary: Mapped[str] = mapped_column(Text, nullable=False)
-    embedding = mapped_column(Vector(1536), nullable=True)
+    embedding = mapped_column(Vector(), nullable=True)
 
     importance: Mapped[float] = mapped_column(Float, default=0.5, nullable=False)
     confidence: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)

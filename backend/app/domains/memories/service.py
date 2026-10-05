@@ -5,9 +5,10 @@ import uuid
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domains.memories.embedding import get_embedding_provider
+from app.domains.memories.embedding import get_embedding_provider, validate_embedding_vector
 from app.domains.memories.exceptions import (
     EmbeddingUnavailableError,
+    MemoryError,
     MemoryInvalidStateError,
     MemoryNotFoundError,
 )
@@ -74,6 +75,7 @@ class MemoryService:
         norm_subject = normalize_key(data.subject)
         norm_predicate = normalize_key(data.predicate)
         norm_value = data.value_text.strip()
+        now = utc_now()
 
         # 4. Check for existing ACTIVE memory with identical deterministic identity
         lookup_stmt = select(Memory).where(
@@ -86,9 +88,20 @@ class MemoryService:
         )
         existing = (await db.execute(lookup_stmt)).scalars().first()
 
-        now = utc_now()
+        # 5. Handle Expired Identity Reassertion:
+        # If existing memory has expires_at <= now, it is effectively EXPIRED.
+        # Lazily transition old row to EXPIRED and treat as if no ACTIVE row exists.
+        if existing is not None and existing.expires_at is not None and existing.expires_at <= now:
+            existing.status = MemoryStatus.EXPIRED.value
+            existing.updated_at = now
+            await db.flush()
+            logger.info(
+                "memory_lazily_expired_on_reassertion",
+                extra={"old_id": str(existing.id), "user_id": str(user_id)},
+            )
+            existing = None
 
-        # 5. Handle Exact Deduplication: same identity + same normalized value
+        # 6. Handle Exact Deduplication: same identity + same normalized value
         if existing is not None:
             existing_val = existing.value_text.strip()
             if existing_val == norm_value and existing.value_json == data.value_json:
@@ -98,13 +111,14 @@ class MemoryService:
                 )
                 return existing
 
-        # 6. Generate summary & attempt embedding generation
+        # 7. Generate summary & attempt embedding generation with validation
         summary = derive_summary(data.subject, data.predicate, data.value_text)
         embedding_vector: list[float] | None = None
         try:
             provider = get_embedding_provider()
-            embedding_vector = await provider.embed(data.value_text)
-        except EmbeddingUnavailableError:
+            raw_vec = await provider.embed(data.value_text)
+            embedding_vector = validate_embedding_vector(raw_vec)
+        except (EmbeddingUnavailableError, MemoryError):
             embedding_vector = None
 
         new_memory = Memory(
@@ -130,7 +144,7 @@ class MemoryService:
         db.add(new_memory)
         await db.flush()
 
-        # 7. Handle Conflict / Supersede: old ACTIVE becomes SUPERSEDED by new memory
+        # 8. Handle Conflict / Supersede: old ACTIVE becomes SUPERSEDED by new memory
         if existing is not None:
             existing.status = MemoryStatus.SUPERSEDED.value
             existing.superseded_by = new_memory.id
@@ -158,11 +172,23 @@ class MemoryService:
         user_id: uuid.UUID,
         memory_id: uuid.UUID,
     ) -> Memory:
-        """Fetch memory with strict user-tenant scoping."""
+        """Fetch memory with strict user-tenant scoping and lazy expiration normalization."""
         stmt = select(Memory).where(Memory.id == memory_id, Memory.user_id == user_id)
         memory = (await db.execute(stmt)).scalar_one_or_none()
         if not memory:
             raise MemoryNotFoundError("Memory not found.")
+
+        # Lazy expiration check on detail retrieval
+        now = utc_now()
+        if (
+            memory.status == MemoryStatus.ACTIVE.value
+            and memory.expires_at is not None
+            and memory.expires_at <= now
+        ):
+            memory.status = MemoryStatus.EXPIRED.value
+            memory.updated_at = now
+            await db.flush()
+
         return memory
 
     @staticmethod
@@ -175,7 +201,7 @@ class MemoryService:
         page: int = 1,
         limit: int = 20,
     ) -> tuple[list[Memory], int]:
-        """List caller-owned memories with bounded pagination and safe expiration filtering."""
+        """List caller-owned memories with bounded pagination and coherent expiration filtering."""
         bounded_limit = max(1, min(limit, 100))
         offset = max(0, (page - 1) * bounded_limit)
         now = utc_now()
@@ -183,10 +209,23 @@ class MemoryService:
         conditions = [Memory.user_id == user_id]
 
         if status is not None:
-            conditions.append(Memory.status == status)
-            if status == MemoryStatus.ACTIVE.value:
-                # Exclude expired memories even if lazy normalization has not executed
+            if status == MemoryStatus.EXPIRED.value:
+                # Include explicitly EXPIRED memories as well as ACTIVE memories whose expires_at <= now
+                conditions.append(
+                    or_(
+                        Memory.status == MemoryStatus.EXPIRED.value,
+                        and_(
+                            Memory.status == MemoryStatus.ACTIVE.value,
+                            Memory.expires_at.is_not(None),
+                            Memory.expires_at <= now,
+                        ),
+                    )
+                )
+            elif status == MemoryStatus.ACTIVE.value:
+                conditions.append(Memory.status == MemoryStatus.ACTIVE.value)
                 conditions.append(or_(Memory.expires_at.is_(None), Memory.expires_at > now))
+            else:
+                conditions.append(Memory.status == status)
         else:
             # Default behavior: prioritize currently usable ACTIVE, non-expired memories
             conditions.append(Memory.status == MemoryStatus.ACTIVE.value)
@@ -209,6 +248,19 @@ class MemoryService:
             .limit(bounded_limit)
         )
         items = list((await db.execute(query)).scalars().all())
+
+        # Lazily normalize any active items in listing that have expired
+        for item in items:
+            if (
+                item.status == MemoryStatus.ACTIVE.value
+                and item.expires_at is not None
+                and item.expires_at <= now
+            ):
+                item.status = MemoryStatus.EXPIRED.value
+                item.updated_at = now
+        if items:
+            await db.flush()
+
         return items, total
 
     @staticmethod
@@ -218,7 +270,7 @@ class MemoryService:
         memory_id: uuid.UUID,
         data: MemoryUpdate,
     ) -> Memory:
-        """Update mutable fields of an active memory."""
+        """Update mutable fields of an active memory with stale embedding prevention and null-clear semantics."""
         await db.execute(select(User.id).where(User.id == user_id).with_for_update())
 
         memory = await MemoryService.get_memory(db, user_id, memory_id)
@@ -239,7 +291,9 @@ class MemoryService:
 
         # Safety policy scan on updated values
         target_val = data.value_text if data.value_text is not None else memory.value_text
-        target_json = data.value_json if data.value_json is not None else memory.value_json
+        target_json = (
+            data.value_json if "value_json" in data.model_fields_set else memory.value_json
+        )
         MemorySafetyPolicy.validate(
             subject=memory.subject,
             predicate=memory.predicate,
@@ -247,25 +301,32 @@ class MemoryService:
             value_json=target_json,
         )
 
-        if data.value_text is not None:
-            memory.value_text = data.value_text.strip()
-            memory.summary = derive_summary(memory.subject, memory.predicate, memory.value_text)
-            try:
+        # Handle value_text change: update summary and re-embed, or set embedding to None (never keep stale vector)
+        if "value_text" in data.model_fields_set and data.value_text is not None:
+            new_val = data.value_text.strip()
+            if new_val != memory.value_text:
+                memory.value_text = new_val
+                memory.summary = derive_summary(memory.subject, memory.predicate, new_val)
                 provider = get_embedding_provider()
-                memory.embedding = await provider.embed(memory.value_text)
-            except EmbeddingUnavailableError:
-                pass
+                try:
+                    raw_vec = await provider.embed(new_val)
+                    memory.embedding = validate_embedding_vector(raw_vec)
+                except (EmbeddingUnavailableError, MemoryError):
+                    # Stale embedding prevention invariant:
+                    # Never retain prior vector when semantic text has changed!
+                    memory.embedding = None
 
-        if data.value_json is not None:
+        # PATCH Null-Clear Semantics using model_fields_set
+        if "value_json" in data.model_fields_set:
             memory.value_json = data.value_json
 
-        if data.importance is not None:
+        if "importance" in data.model_fields_set and data.importance is not None:
             memory.importance = data.importance
 
-        if data.sensitivity is not None:
+        if "sensitivity" in data.model_fields_set and data.sensitivity is not None:
             memory.sensitivity = data.sensitivity.value
 
-        if data.expires_at is not None:
+        if "expires_at" in data.model_fields_set:
             memory.expires_at = data.expires_at
 
         memory.updated_at = now
@@ -306,9 +367,10 @@ class MemoryService:
         limit: int = 10,
     ) -> list[MemorySearchHit]:
         """Perform semantic search using pgvector cosine similarity scan."""
-        # 1. Require embedding provider to generate query vector
+        # 1. Require embedding provider to generate validated query vector
         provider = get_embedding_provider()
-        query_vector = await provider.embed(query)
+        raw_query_vec = await provider.embed(query)
+        query_vector = validate_embedding_vector(raw_query_vec)
 
         # 2. Verify project ownership if project scope is supplied
         if project_id is not None:

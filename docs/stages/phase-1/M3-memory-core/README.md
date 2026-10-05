@@ -17,6 +17,6 @@ Milestone M3 implements the semantic memory subsystem for the NEXUS platform. Bu
 - [Performance Results](performance-results.md) — Latency benchmarks for creation, listing, deduplication, and vector queries.
 - [Files Changed](files-changed.md) — Comprehensive inventory of new and modified files.
 - [Deviations](deviations.md) — Documented architectural adaptations and decisions.
-- [Known Issues](known-issues.md) — Open technical debt items (TBD-025, TBD-030, Live Apple E2E).
+- [Known Issues](known-issues.md) — Open technical debt items (TBD-025, TBD-004, Live Apple E2E).
 - [Commands Run](commands-run.md) — Log of terminal commands executed during development and validation.
 - [Completion Report](completion-report.md) — Final milestone signoff and verification report.

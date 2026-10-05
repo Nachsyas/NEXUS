@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.dependencies import UserContext, get_current_user_context
 from app.core.responses import api_success
+from app.domains.memories.models import MemoryStatus, MemoryType
 from app.domains.memories.schemas import (
     MemoryCreate,
     MemoryForgetResponse,
@@ -47,22 +48,26 @@ async def create_memory(
     description="Retrieve caller-owned memories with status, project, and category filtering and bounded pagination.",
 )
 async def list_memories(
-    status: str | None = Query(
-        default=None, description="Filter by status (default: ACTIVE non-expired)"
+    status: MemoryStatus | None = Query(
+        default=None, description="Filter by canonical status (default: ACTIVE non-expired)"
     ),
     project_id: uuid.UUID | None = Query(default=None, description="Filter by project scope"),
-    memory_type: str | None = Query(default=None, description="Filter by canonical memory type"),
+    memory_type: MemoryType | None = Query(
+        default=None, description="Filter by canonical memory type"
+    ),
     page: int = Query(default=1, ge=1, description="Page number (1-indexed)"),
     limit: int = Query(default=20, ge=1, le=100, description="Items per page (max 100)"),
     current_user: UserContext = Depends(get_current_user_context),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
+    status_filter = status.value if status else None
+    type_filter = memory_type.value if memory_type else None
     memories, total = await MemoryService.list_memories(
         db=db,
         user_id=current_user.user_id,
-        status=status,
+        status=status_filter,
         project_id=project_id,
-        memory_type=memory_type,
+        memory_type=type_filter,
         page=page,
         limit=limit,
     )
@@ -103,7 +108,7 @@ async def search_memories(
     "/{memory_id}",
     status_code=status.HTTP_200_OK,
     summary="Get Memory Details",
-    description="Retrieve full structured details of a specific memory owned by authenticated user.",
+    description="Retrieve a specific caller-owned memory by ID.",
 )
 async def get_memory(
     memory_id: uuid.UUID,
@@ -115,6 +120,7 @@ async def get_memory(
         user_id=current_user.user_id,
         memory_id=memory_id,
     )
+    await db.commit()
     data = MemoryResponse.model_validate(memory).model_dump(mode="json")
     return api_success(data)
 
@@ -123,7 +129,7 @@ async def get_memory(
     "/{memory_id}",
     status_code=status.HTTP_200_OK,
     summary="Update Memory Entry",
-    description="Selectively update mutable fields of an active memory.",
+    description="Update mutable fields of an active memory.",
 )
 async def update_memory(
     memory_id: uuid.UUID,
@@ -145,8 +151,8 @@ async def update_memory(
 @router.post(
     "/{memory_id}/forget",
     status_code=status.HTTP_200_OK,
-    summary="Forget Memory",
-    description="Transition memory status to FORGOTTEN, excluding it from context retrieval.",
+    summary="Forget Memory Entry",
+    description="Soft-delete a memory by marking its status as FORGOTTEN (idempotent).",
 )
 async def forget_memory(
     memory_id: uuid.UUID,

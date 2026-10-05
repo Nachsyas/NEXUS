@@ -12,12 +12,12 @@
 **Production NEXUS Implementation:** M1 Account & Identity + M2 Projects + M3 Memory Core  
 **iOS Project:** Canonical location `apps/ios/NEXUS.xcodeproj` (Target `NEXUS`, Swift 6 Approachable Concurrency, Sign in with Apple UI, Projects & Memories Control Center, build succeeded)  
 **macOS Agent:** Canonical location `apps/mac-agent/` (Native Swift Package executable foundation; Phase 1 packaging tracked in TBD-027)  
-**Backend:** Canonical location `backend/` (FastAPI modular monolith, `uv` baseline, PostgreSQL 16 + pgvector, Redis 7, Alembic migrations 0001-0004 applied, 51/51 Pytest passing)  
+**Backend:** Canonical location `backend/` (FastAPI modular monolith, `uv` baseline, PostgreSQL 16 + pgvector, Redis 7, Alembic migrations 0001-0004 applied, 54/54 Pytest passing)  
 **Apple Auth Status:** Code complete; mock verifier 100% passing; iOS UI builds; `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED`  
 **M0 Status:** CLOSED — COMPLETE  
 **M1 Status:** CLOSED — COMPLETE & RATIFIED  
 **M2 Status:** CLOSED — COMPLETE  
-**M3 Status:** IMPLEMENTATION COMPLETE — READY FOR PR  
+**M3 Status:** IMPLEMENTATION COMPLETE — PRE-MERGE CORRECTIVE PASS COMPLETED — READY FOR FINAL PR MERGE  
 **Next Milestone:** Milestone M4 — AI Conversation (Canonical Phase 1 order: M0 Foundation -> M1 Account & Identity -> M2 Projects -> M3 Memory Core -> M4 AI Conversation; strictly awaiting PR review and explicit authorization)  
 **Standing Autonomous Execution:** HALTED AT M3 PR BOUNDARY  
 

@@ -2,7 +2,35 @@ import hashlib
 import math
 from typing import Protocol
 
-from app.domains.memories.exceptions import EmbeddingUnavailableError
+from app.domains.memories.exceptions import (
+    EmbeddingUnavailableError,
+    EmbeddingValidationError,
+)
+
+
+def validate_embedding_vector(
+    vector: list[float] | None, expected_dim: int | None = None
+) -> list[float]:
+    """Validate embedding vector for non-emptiness, finiteness, and dimension consistency.
+
+    Does NOT log or echo raw vector data.
+    """
+    if not vector:
+        raise EmbeddingValidationError("Embedding vector is empty.")
+
+    dim = len(vector)
+    if expected_dim is not None and dim != expected_dim:
+        raise EmbeddingValidationError(
+            f"Embedding vector dimension mismatch: expected {expected_dim}, got {dim}."
+        )
+
+    for i, val in enumerate(vector):
+        if not isinstance(val, (int, float)) or not math.isfinite(val):
+            raise EmbeddingValidationError(
+                f"Embedding vector contains non-finite or invalid numeric value at index {i}."
+            )
+
+    return vector
 
 
 class EmbeddingProvider(Protocol):
@@ -18,21 +46,21 @@ class EmbeddingProvider(Protocol):
 
 
 class UnavailableEmbeddingProvider:
-    """Default production provider when no production embedding model/service is configured (TBD-030)."""
+    """Default production provider when no production embedding model/service is configured (TBD-004)."""
 
     async def embed(self, _text: str) -> list[float]:
         raise EmbeddingUnavailableError(
-            "Production embedding provider is not configured. (TBD-030)"
+            "Production embedding provider is not configured. (TBD-004)"
         )
 
     async def embed_batch(self, _texts: list[str]) -> list[list[float]]:
         raise EmbeddingUnavailableError(
-            "Production embedding provider is not configured. (TBD-030)"
+            "Production embedding provider is not configured. (TBD-004)"
         )
 
 
 class DeterministicTestEmbeddingProvider:
-    """Deterministic, unit-normalized 1536-dimensional embedding provider for test suite verification.
+    """Deterministic, unit-normalized embedding provider for test suite verification.
 
     NOTE: Used strictly for integration and unit testing. NOT presented as production semantic quality.
     """
@@ -49,7 +77,8 @@ class DeterministicTestEmbeddingProvider:
             val = int.from_bytes(h[:4], "big", signed=True) / (2**31 - 1)
             raw_values.append(val)
         norm = math.sqrt(sum(x * x for x in raw_values)) or 1.0
-        return [x / norm for x in raw_values]
+        vec = [x / norm for x in raw_values]
+        return validate_embedding_vector(vec, expected_dim=self.dimension)
 
     async def embed(self, text: str) -> list[float]:
         return self._generate_vector(text)

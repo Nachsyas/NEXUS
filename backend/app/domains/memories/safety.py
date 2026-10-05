@@ -15,16 +15,22 @@ _SECRET_PATTERNS = [
     re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr|github_pat)_[a-zA-Z0-9_]{20,}\b"),
     re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
     re.compile(
-        r"(?i)\b(?:api[_-]?key|secret[_-]?key|client[_-]?secret|auth[_-]?token|access[_-]?token|refresh[_-]?token)\s*[:=]\s*['\"]?[a-zA-Z0-9_\-\.]{16,}['\"]?"
-    ),
-    re.compile(r"(?i)\b(?:password|passwd|pwd)\s*[:=]\s*['\"]?[^\s'\"]{6,}['\"]?"),
-    re.compile(
-        r"(?i)\b(?:otp|one-time\s+password|verification\s+code)\s*[:=]\s*['\"]?\d{4,8}['\"]?"
+        r"""(?i)\b(?:[a-z0-9_-]*_)?(?:api[_-]?key|secret[_-]?key|client[_-]?secret|auth[_-]?token|access[_-]?token|refresh[_-]?token)(?:\s+is)?\s*[:=]\s*['"]?[a-zA-Z0-9_\-\.]{16,}['"]?"""
     ),
     re.compile(
-        r"(?i)\b(?:seed\s+phrase|recovery\s+phrase)\s*[:=]\s*['\"]?[a-z]+(?:\s+[a-z]+){11,}['\"]?"
+        r"""(?i)\b(?:[a-z0-9_-]*_)?(?:password|passwd|pwd)(?:\s+is)?\s*[:=]\s*['"]?[^\s'"]{6,}['"]?"""
+    ),
+    re.compile(
+        r"""(?i)\b(?:otp(?:\s+code)?|one-time\s+password|verification\s+code)(?:\s+is)?\s*[:=]?\s*['"]?\d{4,8}['"]?"""
+    ),
+    re.compile(
+        r"""(?i)\b(?:seed\s+phrase|recovery\s+phrase)\s*[:=]\s*['"]?[a-z]+(?:\s+[a-z]+){11,}['"]?"""
     ),
 ]
+
+_SENSITIVE_KEY_PATTERN = re.compile(
+    r"(?i)(?:password|passwd|pwd|secret_key|api_key|client_secret|auth_token|access_token|refresh_token)"
+)
 
 
 class MemorySafetyPolicy:
@@ -46,8 +52,11 @@ class MemorySafetyPolicy:
             return cls.scan_text(data)
         if isinstance(data, dict):
             for k, v in data.items():
-                if isinstance(k, str) and cls.scan_text(k):
-                    return True
+                if isinstance(k, str):
+                    if cls.scan_text(k) or cls.scan_text(f"{k}: {v}"):
+                        return True
+                    if _SENSITIVE_KEY_PATTERN.search(k) and v:
+                        return True
                 if cls.scan_data(v):
                     return True
             return False
