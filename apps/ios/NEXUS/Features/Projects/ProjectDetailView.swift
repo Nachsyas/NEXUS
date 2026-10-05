@@ -160,12 +160,12 @@ public struct ProjectDetailView: View {
                                     .font(.caption)
                             }
                             HStack {
-                                Text("Memory & Knowledge Entities:")
+                                Text("Context Status:")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
-                                Text("\(ctx.memoryCount) memories, \(ctx.knowledgeCount) knowledge items (M3+ ready)")
+                                Text(ctx.status)
                                     .font(.caption)
-                                    .monospaced()
+                                    .fontWeight(.medium)
                             }
                         }
                         .padding(.top, 4)

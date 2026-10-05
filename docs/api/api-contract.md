@@ -83,7 +83,7 @@
     "name": "string",
     "description": "string | null",
     "status": "IDEA | PLANNING | ACTIVE | PAUSED | COMPLETED",
-    "priority": "LOW | NORMAL | HIGH | CRITICAL | null",
+    "priority": "LOW | NORMAL | HIGH | null",
     "summary": "string | null",
     "progress": 0,
     "technologies": ["string"]
@@ -147,7 +147,7 @@
 - **Response Data:** `{ "id": "uuid", "status": "ARCHIVED", "is_active": false, "archived_at": "ISO-8601 UTC" }`
 
 ### `GET /projects/{project_id}/context`
-- **Tujuan:** Mengambil ringkasan fondasi metadata konteks proyek terstruktur untuk orientasi interaksi (M2 deterministic baseline, memory_count=0 dan knowledge_count=0).
+- **Tujuan:** Mengambil ringkasan fondasi metadata konteks proyek terstruktur untuk orientasi interaksi (M2 deterministic metadata baseline).
 - **Response Data:**
   ```json
   {
@@ -159,9 +159,7 @@
     "priority": "string | null",
     "progress": 0,
     "is_active": true,
-    "active_technologies": ["string"],
-    "memory_count": 0,
-    "knowledge_count": 0
+    "active_technologies": ["string"]
   }
   ```
 

@@ -39,3 +39,19 @@
   - `archive_project` explicitly verifies `is_active = false` and sets `archived_at = now()`.
   - `activate_project` explicitly rejects archived projects with `ProjectInvalidStateError` (HTTP 400).
 - **Verification:** Proven in `test_project_archiving_flow`.
+
+### 1.6 Cross-Tenant Default Project Preference Injection
+- **Threat:** User A attempts to set `default_project_id = User B's project ID` via `PATCH /api/v1/me/preferences`.
+- **Mitigation:**
+  - `UserService.update_user_preferences` performs strict database verification:
+    `SELECT id FROM projects WHERE id = :target_id AND user_id = :user_id`.
+  - Foreign or non-existent projects raise `ProjectNotFoundError` (HTTP 404), completely preventing existence probing and cross-tenant project hijacking.
+  - Setting `default_project_id: null` safely clears the preference.
+- **Verification:** Proven in `test_default_project_ownership_validation`.
+
+### 1.7 Concurrent Slug Collision Resilience
+- **Threat:** Simultaneous creation requests for identical project names trigger unhandled database 500 errors on unique constraint violation.
+- **Mitigation:**
+  - `ProjectService.create_project` implements a bounded deterministic retry strategy (5 attempts) with nested database savepoints (`db.begin_nested()`).
+  - On unique constraint collision, the savepoint cleanly rolls back and increments the slug suffix candidate (`slug-2`, `slug-3`).
+- **Verification:** Proven in `test_concurrent_same_name_slug_creation`.

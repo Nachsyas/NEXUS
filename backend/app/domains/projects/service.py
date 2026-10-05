@@ -4,12 +4,14 @@ import uuid
 from typing import Any
 
 from sqlalchemy import func, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.domains.projects.exceptions import (
     ProjectInvalidStateError,
     ProjectNotFoundError,
+    ProjectSlugConflictError,
 )
 from app.domains.projects.models import (
     Project,
@@ -17,6 +19,7 @@ from app.domains.projects.models import (
     utc_now,
 )
 from app.domains.projects.schemas import ProjectCreate, ProjectUpdate
+from app.domains.users.models import User
 
 
 def slugify(value: str) -> str:
@@ -58,33 +61,47 @@ class ProjectService:
         if not clean_name:
             raise ValueError("Project name cannot be empty.")
 
-        slug = await ProjectService.generate_unique_slug(db, user_id, clean_name)
+        max_slug_retries = 5
+        for _ in range(max_slug_retries):
+            slug = await ProjectService.generate_unique_slug(db, user_id, clean_name)
 
-        project = Project(
-            user_id=user_id,
-            name=clean_name,
-            slug=slug,
-            description=data.description,
-            status=data.status,
-            priority=data.priority,
-            summary=data.summary,
-            progress=data.progress,
-            is_active=False,
+            project = Project(
+                user_id=user_id,
+                name=clean_name,
+                slug=slug,
+                description=data.description,
+                status=data.status,
+                priority=data.priority,
+                summary=data.summary,
+                progress=data.progress,
+                is_active=False,
+            )
+
+            if data.technologies:
+                seen: set[str] = set()
+                for tech_name in data.technologies:
+                    clean_tech = tech_name.strip()
+                    if clean_tech and clean_tech.lower() not in seen:
+                        seen.add(clean_tech.lower())
+                        project.technologies.append(
+                            ProjectTechnology(name=clean_tech, tech_metadata={})
+                        )
+
+            try:
+                async with db.begin_nested():
+                    db.add(project)
+                    await db.flush()
+                return await ProjectService.get_project(db, user_id, project.id)
+            except IntegrityError as exc:
+                err_msg = str(exc.orig) if hasattr(exc, "orig") else str(exc)
+                if "uq_projects_user_slug" in err_msg or "slug" in err_msg:
+                    # Slug collision due to concurrent creation; retry with newly computed candidate
+                    continue
+                raise
+
+        raise ProjectSlugConflictError(
+            "Could not generate a unique slug due to concurrent requests."
         )
-
-        if data.technologies:
-            seen: set[str] = set()
-            for tech_name in data.technologies:
-                clean_tech = tech_name.strip()
-                if clean_tech and clean_tech.lower() not in seen:
-                    seen.add(clean_tech.lower())
-                    project.technologies.append(
-                        ProjectTechnology(name=clean_tech, tech_metadata={})
-                    )
-
-        db.add(project)
-        await db.flush()
-        return await ProjectService.get_project(db, user_id, project.id)
 
     @staticmethod
     async def list_projects(
@@ -203,6 +220,9 @@ class ProjectService:
         user_id: uuid.UUID,
         project_id: uuid.UUID,
     ) -> Project:
+        # Acquire row-level lock on user to serialize activation attempts for the same user
+        await db.execute(select(User.id).where(User.id == user_id).with_for_update())
+
         project = await ProjectService.get_project(db, user_id, project_id)
 
         if project.status == "ARCHIVED":
@@ -258,6 +278,4 @@ class ProjectService:
             "progress": project.progress or 0,
             "is_active": project.is_active,
             "active_technologies": active_techs,
-            "memory_count": 0,
-            "knowledge_count": 0,
         }

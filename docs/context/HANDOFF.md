@@ -22,7 +22,7 @@
   - SwiftUI views: `ProjectsListView`, `CreateProjectSheet`, `ProjectDetailView`.
   - Authenticated `TabView` navigation in `ContentView.swift`.
 - **Quality Gates:**
-  - Pytest: 36 passed (13 M2 tests, 23 M1 tests).
+  - Pytest: 37 passed (14 M2 tests, 23 M1 tests).
   - Ruff: 0 lint errors, 42 files formatted.
   - Mypy: 0 errors in 37 files.
   - iOS Simulator: Build succeeded.

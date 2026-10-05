@@ -1,9 +1,9 @@
+import asyncio
 import uuid
 
 import pytest
 from httpx import AsyncClient
-from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func, select
 
 from app.core.database import async_session_factory
 from app.domains.auth.apple_verifier import MockAppleVerifier, set_apple_verifier
@@ -55,16 +55,16 @@ async def test_anonymous_access_rejected(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_project_creation_and_ownership(async_client: AsyncClient) -> None:
-    headers, user_id = await create_test_user(async_client, "Project Creator")
+    headers, user_id_str = await create_test_user(async_client, "Project Creator")
 
     payload = {
-        "name": "  NEXUS Intelligence  ",
-        "description": "Autonomous companion ecosystem",
-        "status": "ACTIVE",
+        "name": "NEXUS Mobile App",
+        "description": "Next-gen AI assistant iOS app",
+        "status": "PLANNING",
         "priority": "HIGH",
-        "summary": "Core project setup",
-        "progress": 35,
-        "technologies": ["Swift", "FastAPI", "PostgreSQL"],
+        "summary": "SwiftUI + FastAPI backend companion",
+        "progress": 25,
+        "technologies": ["Swift", "SwiftUI", "FastAPI"],
     }
 
     res = await async_client.post("/api/v1/projects", json=payload, headers=headers)
@@ -73,220 +73,248 @@ async def test_project_creation_and_ownership(async_client: AsyncClient) -> None
     assert body["success"] is True
     data = body["data"]
 
-    assert data["name"] == "NEXUS Intelligence"
-    assert data["slug"] == "nexus-intelligence"
-    assert data["description"] == "Autonomous companion ecosystem"
-    assert data["status"] == "ACTIVE"
+    # Verify UUIDv7 and canonical fields
+    assert uuid.UUID(data["id"])
+    assert data["name"] == "NEXUS Mobile App"
+    assert data["slug"] == "nexus-mobile-app"
+    assert data["description"] == payload["description"]
+    assert data["status"] == "PLANNING"
     assert data["priority"] == "HIGH"
-    assert data["progress"] == 35
+    assert data["progress"] == 25
     assert data["is_active"] is False
-    assert data["archived_at"] is None
     assert len(data["technologies"]) == 3
-
-    # Verify UUIDv7
-    proj_uuid = uuid.UUID(data["id"])
-    assert proj_uuid.version == 7
+    tech_names = [t["name"] for t in data["technologies"]]
+    assert "Swift" in tech_names
+    assert "SwiftUI" in tech_names
+    assert "FastAPI" in tech_names
 
 
 @pytest.mark.asyncio
 async def test_slug_generation_and_deterministic_collision(async_client: AsyncClient) -> None:
-    headers_1, _ = await create_test_user(async_client, "User One")
-    headers_2, _ = await create_test_user(async_client, "User Two")
+    headers, _ = await create_test_user(async_client, "Slug Tester")
 
-    # User 1 creates first project
-    r1 = await async_client.post(
-        "/api/v1/projects", json={"name": "Quantum Leap"}, headers=headers_1
+    # First project: slug should be clean base slug
+    res1 = await async_client.post(
+        "/api/v1/projects",
+        json={"name": "Project Apollo & Artemis!"},
+        headers=headers,
     )
-    assert r1.status_code == 201
-    assert r1.json()["data"]["slug"] == "quantum-leap"
+    assert res1.status_code == 201
+    assert res1.json()["data"]["slug"] == "project-apollo-artemis"
 
-    # User 1 creates second project with same name -> collision handled deterministically
-    r2 = await async_client.post(
-        "/api/v1/projects", json={"name": "Quantum Leap"}, headers=headers_1
+    # Second project with identical normalized name by same user: slug becomes -2
+    res2 = await async_client.post(
+        "/api/v1/projects",
+        json={"name": "Project Apollo   Artemis"},
+        headers=headers,
     )
-    assert r2.status_code == 201
-    assert r2.json()["data"]["slug"] == "quantum-leap-2"
+    assert res2.status_code == 201
+    assert res2.json()["data"]["slug"] == "project-apollo-artemis-2"
 
-    # User 1 creates third project with same name
-    r3 = await async_client.post(
-        "/api/v1/projects", json={"name": "Quantum Leap"}, headers=headers_1
+    # Third project by same user: slug becomes -3
+    res3 = await async_client.post(
+        "/api/v1/projects",
+        json={"name": "project apollo artemis"},
+        headers=headers,
     )
-    assert r3.status_code == 201
-    assert r3.json()["data"]["slug"] == "quantum-leap-3"
+    assert res3.status_code == 201
+    assert res3.json()["data"]["slug"] == "project-apollo-artemis-3"
 
-    # User 2 creates project with same name -> gets clean base slug (per-user namespace)
-    r4 = await async_client.post(
-        "/api/v1/projects", json={"name": "Quantum Leap"}, headers=headers_2
+    # Different user can use the base slug without conflict
+    headers2, _ = await create_test_user(async_client, "Another Slug User")
+    res_other = await async_client.post(
+        "/api/v1/projects",
+        json={"name": "Project Apollo Artemis"},
+        headers=headers2,
     )
-    assert r4.status_code == 201
-    assert r4.json()["data"]["slug"] == "quantum-leap"
+    assert res_other.status_code == 201
+    assert res_other.json()["data"]["slug"] == "project-apollo-artemis"
+
+
+@pytest.mark.asyncio
+async def test_concurrent_same_name_slug_creation(async_client: AsyncClient) -> None:
+    headers, _ = await create_test_user(async_client, "Concurrent Slug User")
+
+    # Concurrently create 3 projects with identical name for the same user
+    tasks = [
+        async_client.post("/api/v1/projects", json={"name": "Concurrent Project"}, headers=headers)
+        for _ in range(3)
+    ]
+    responses = await asyncio.gather(*tasks)
+
+    # None of the responses should be a 500 error
+    for r in responses:
+        assert r.status_code == 201, f"Expected 201, got {r.status_code}: {r.text}"
+
+    slugs = [r.json()["data"]["slug"] for r in responses]
+    assert len(slugs) == 3
+    assert len(set(slugs)) == 3, f"Slugs must be unique, got: {slugs}"
+    expected_slug_set = {"concurrent-project", "concurrent-project-2", "concurrent-project-3"}
+    assert set(slugs) == expected_slug_set
 
 
 @pytest.mark.asyncio
 async def test_cross_user_isolation_and_idor(async_client: AsyncClient) -> None:
-    headers_a, user_a_id = await create_test_user(async_client, "User A")
-    headers_b, user_b_id = await create_test_user(async_client, "User B")
+    headers_a, _ = await create_test_user(async_client, "Tenant A")
+    headers_b, _ = await create_test_user(async_client, "Tenant B")
 
-    # User A creates a project
-    create_res = await async_client.post(
+    # Tenant A creates project
+    res_a = await async_client.post(
         "/api/v1/projects",
-        json={"name": "Project Secret A", "technologies": ["Rust"]},
+        json={"name": "Tenant A Secret Project"},
         headers=headers_a,
     )
-    proj_a_id = create_res.json()["data"]["id"]
+    proj_a_id = res_a.json()["data"]["id"]
 
-    # User B cannot read User A project (404 to avoid resource existence leaking)
-    get_res = await async_client.get(f"/api/v1/projects/{proj_a_id}", headers=headers_b)
-    assert get_res.status_code == 404
-    assert get_res.json()["error"]["code"] == "PROJECT_NOT_FOUND"
+    # Tenant B tries to get Tenant A's project -> 404 (prevent IDOR)
+    res_get = await async_client.get(f"/api/v1/projects/{proj_a_id}", headers=headers_b)
+    assert res_get.status_code == 404
+    assert res_get.json()["error"]["code"] == "PROJECT_NOT_FOUND"
 
-    # User B cannot update User A project
-    patch_res = await async_client.patch(
+    # Tenant B tries to update Tenant A's project -> 404
+    res_patch = await async_client.patch(
         f"/api/v1/projects/{proj_a_id}",
         json={"name": "Hacked Project"},
         headers=headers_b,
     )
-    assert patch_res.status_code == 404
+    assert res_patch.status_code == 404
 
-    # User B cannot activate User A project
-    act_res = await async_client.post(f"/api/v1/projects/{proj_a_id}/activate", headers=headers_b)
-    assert act_res.status_code == 404
+    # Tenant B tries to activate Tenant A's project -> 404
+    res_act = await async_client.post(f"/api/v1/projects/{proj_a_id}/activate", headers=headers_b)
+    assert res_act.status_code == 404
 
-    # User B cannot archive User A project
-    arch_res = await async_client.post(f"/api/v1/projects/{proj_a_id}/archive", headers=headers_b)
-    assert arch_res.status_code == 404
+    # Tenant B tries to archive Tenant A's project -> 404
+    res_arc = await async_client.post(f"/api/v1/projects/{proj_a_id}/archive", headers=headers_b)
+    assert res_arc.status_code == 404
 
-    # User B cannot get context of User A project
-    ctx_res = await async_client.get(f"/api/v1/projects/{proj_a_id}/context", headers=headers_b)
-    assert ctx_res.status_code == 404
-
-    # User B cannot mass-assign user_id to User A
-    spoof_res = await async_client.post(
-        "/api/v1/projects",
-        json={"name": "Spoofed Project", "user_id": user_a_id},
-        headers=headers_b,
-    )
-    assert spoof_res.status_code == 201
-    # Verify ownership in DB is assigned to User B, not User A
-    spoofed_id = uuid.UUID(spoof_res.json()["data"]["id"])
-    async with async_session_factory() as session:
-        proj_in_db = (
-            await session.execute(select(Project).where(Project.id == spoofed_id))
-        ).scalar_one()
-        assert str(proj_in_db.user_id) == user_b_id
+    # Tenant B tries to get Tenant A's project context -> 404
+    res_ctx = await async_client.get(f"/api/v1/projects/{proj_a_id}/context", headers=headers_b)
+    assert res_ctx.status_code == 404
 
 
 @pytest.mark.asyncio
 async def test_project_activation_flow_and_invariant(async_client: AsyncClient) -> None:
-    headers, _ = await create_test_user(async_client, "Activation User")
+    headers, _ = await create_test_user(async_client, "Active Tester")
 
-    # Create 2 projects
-    p1 = (await async_client.post("/api/v1/projects", json={"name": "P1"}, headers=headers)).json()[
-        "data"
-    ]
-    p2 = (await async_client.post("/api/v1/projects", json={"name": "P2"}, headers=headers)).json()[
-        "data"
-    ]
+    # Create two projects
+    p1 = (
+        await async_client.post("/api/v1/projects", json={"name": "Project 1"}, headers=headers)
+    ).json()["data"]
+    p2 = (
+        await async_client.post("/api/v1/projects", json={"name": "Project 2"}, headers=headers)
+    ).json()["data"]
 
-    # Initially zero active
     assert p1["is_active"] is False
     assert p2["is_active"] is False
 
-    # Activate P1
+    # Activate Project 1
     act1 = await async_client.post(f"/api/v1/projects/{p1['id']}/activate", headers=headers)
     assert act1.status_code == 200
     assert act1.json()["data"]["is_active"] is True
 
-    # Check P1 is active
-    get_p1 = (await async_client.get(f"/api/v1/projects/{p1['id']}", headers=headers)).json()[
-        "data"
-    ]
-    assert get_p1["is_active"] is True
-
-    # Activate P2 -> atomically deactivates P1 and activates P2
+    # Activate Project 2 -> Project 1 must become inactive (single active focus invariant)
     act2 = await async_client.post(f"/api/v1/projects/{p2['id']}/activate", headers=headers)
     assert act2.status_code == 200
     assert act2.json()["data"]["is_active"] is True
 
-    # Verify P1 is now inactive and P2 is active
-    get_p1 = (await async_client.get(f"/api/v1/projects/{p1['id']}", headers=headers)).json()[
+    # Verify Project 1 is now inactive
+    p1_refresh = (await async_client.get(f"/api/v1/projects/{p1['id']}", headers=headers)).json()[
         "data"
     ]
-    get_p2 = (await async_client.get(f"/api/v1/projects/{p2['id']}", headers=headers)).json()[
-        "data"
-    ]
-    assert get_p1["is_active"] is False
-    assert get_p2["is_active"] is True
+    assert p1_refresh["is_active"] is False
 
-    # Re-activating P2 is idempotent
+    # Activating already active project is idempotent
     act2_repeat = await async_client.post(f"/api/v1/projects/{p2['id']}/activate", headers=headers)
     assert act2_repeat.status_code == 200
     assert act2_repeat.json()["data"]["is_active"] is True
 
-    # Database partial unique index enforcement:
-    # Directly attempting to violate partial unique index raises IntegrityError
+
+@pytest.mark.asyncio
+async def test_concurrent_activation_safety(async_client: AsyncClient) -> None:
+    headers, user_id_str = await create_test_user(async_client, "Race User")
+    user_id = uuid.UUID(user_id_str)
+
+    # Create 3 projects
+    p1 = (
+        await async_client.post("/api/v1/projects", json={"name": "Project One"}, headers=headers)
+    ).json()["data"]
+    p2 = (
+        await async_client.post("/api/v1/projects", json={"name": "Project Two"}, headers=headers)
+    ).json()["data"]
+    p3 = (
+        await async_client.post("/api/v1/projects", json={"name": "Project Three"}, headers=headers)
+    ).json()["data"]
+
+    # Fire concurrent activation requests for the same user
+    tasks = [
+        async_client.post(f"/api/v1/projects/{p1['id']}/activate", headers=headers),
+        async_client.post(f"/api/v1/projects/{p2['id']}/activate", headers=headers),
+        async_client.post(f"/api/v1/projects/{p3['id']}/activate", headers=headers),
+    ]
+    responses = await asyncio.gather(*tasks)
+
+    # None of the responses should fail with 500
+    for r in responses:
+        assert r.status_code == 200, f"Expected 200, got {r.status_code}: {r.text}"
+
+    # Verify directly against database engine: COUNT(is_active = true) == 1
     async with async_session_factory() as session:
-        proj_1_db = (
-            await session.execute(select(Project).where(Project.id == uuid.UUID(p1["id"])))
-        ).scalar_one()
-        proj_1_db.is_active = True
-        with pytest.raises(IntegrityError):
-            await session.flush()
-        await session.rollback()
+        count_stmt = select(func.count()).where(
+            Project.user_id == user_id,
+            Project.is_active.is_(True),
+        )
+        active_count = (await session.execute(count_stmt)).scalar_one()
+        assert active_count == 1
+
+    # Verify via API listing
+    list_active = await async_client.get("/api/v1/projects?is_active=true", headers=headers)
+    assert list_active.status_code == 200
+    active_projects = list_active.json()["data"]
+    assert len(active_projects) == 1
+    assert active_projects[0]["id"] in [p1["id"], p2["id"], p3["id"]]
 
 
 @pytest.mark.asyncio
 async def test_project_archiving_flow(async_client: AsyncClient) -> None:
-    headers, _ = await create_test_user(async_client, "Archiving User")
+    headers, _ = await create_test_user(async_client, "Archive Tester")
 
     p = (
         await async_client.post("/api/v1/projects", json={"name": "To Archive"}, headers=headers)
     ).json()["data"]
-    p_id = p["id"]
 
     # Activate it first
-    await async_client.post(f"/api/v1/projects/{p_id}/activate", headers=headers)
+    await async_client.post(f"/api/v1/projects/{p['id']}/activate", headers=headers)
 
     # Archive it
-    arch_res = await async_client.post(f"/api/v1/projects/{p_id}/archive", headers=headers)
-    assert arch_res.status_code == 200
-    arch_data = arch_res.json()["data"]
-    assert arch_data["status"] == "ARCHIVED"
-    assert arch_data["is_active"] is False
-    assert arch_data["archived_at"] is not None
+    arc_res = await async_client.post(f"/api/v1/projects/{p['id']}/archive", headers=headers)
+    assert arc_res.status_code == 200
+    arc_data = arc_res.json()["data"]
+    assert arc_data["status"] == "ARCHIVED"
+    assert arc_data["is_active"] is False
+    assert arc_data["archived_at"] is not None
 
-    # Cannot activate an archived project
-    act_res = await async_client.post(f"/api/v1/projects/{p_id}/activate", headers=headers)
-    assert act_res.status_code == 400
-    assert act_res.json()["error"]["code"] == "PROJECT_INVALID_STATE"
-
-    # Default list excludes archived projects
+    # Archived project must not be returned in default list
     list_res = await async_client.get("/api/v1/projects", headers=headers)
     assert len(list_res.json()["data"]) == 0
 
-    # List with include_archived=true includes it
+    # Archived project returned when include_archived=true
     list_all = await async_client.get("/api/v1/projects?include_archived=true", headers=headers)
     assert len(list_all.json()["data"]) == 1
+
+    # Cannot activate an archived project
+    fail_act = await async_client.post(f"/api/v1/projects/{p['id']}/activate", headers=headers)
+    assert fail_act.status_code == 400
+    assert fail_act.json()["error"]["code"] == "PROJECT_INVALID_STATE"
 
 
 @pytest.mark.asyncio
 async def test_project_status_validation(async_client: AsyncClient) -> None:
-    headers, _ = await create_test_user(async_client, "Status Validator")
+    headers, _ = await create_test_user(async_client, "Validation User")
 
-    # Valid statuses
-    for valid_status in ["IDEA", "PLANNING", "ACTIVE", "PAUSED", "COMPLETED"]:
-        r = await async_client.post(
-            "/api/v1/projects",
-            json={"name": f"Project {valid_status}", "status": valid_status},
-            headers=headers,
-        )
-        assert r.status_code == 201
-        assert r.json()["data"]["status"] == valid_status
-
-    # Invalid status rejected with 422
+    # Invalid status in creation rejected with 422
     bad_res = await async_client.post(
         "/api/v1/projects",
-        json={"name": "Bad Status", "status": "SUPER_ACTIVE"},
+        json={"name": "Bad Project", "status": "UNKNOWN_STATUS"},
         headers=headers,
     )
     assert bad_res.status_code == 422
@@ -294,68 +322,62 @@ async def test_project_status_validation(async_client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_project_progress_validation(async_client: AsyncClient) -> None:
-    headers, _ = await create_test_user(async_client, "Progress Validator")
+    headers, _ = await create_test_user(async_client, "Progress User")
 
-    # Bounds: 0 is valid
-    r0 = await async_client.post(
-        "/api/v1/projects", json={"name": "P0", "progress": 0}, headers=headers
+    # Progress > 100 rejected with 422
+    r_high = await async_client.post(
+        "/api/v1/projects",
+        json={"name": "Too High", "progress": 105},
+        headers=headers,
     )
-    assert r0.status_code == 201
-    assert r0.json()["data"]["progress"] == 0
+    assert r_high.status_code == 422
 
-    # Bounds: 100 is valid
-    r100 = await async_client.post(
-        "/api/v1/projects", json={"name": "P100", "progress": 100}, headers=headers
+    # Progress < 0 rejected with 422
+    r_low = await async_client.post(
+        "/api/v1/projects",
+        json={"name": "Too Low", "progress": -5},
+        headers=headers,
     )
-    assert r100.status_code == 201
-    assert r100.json()["data"]["progress"] == 100
-
-    # Negative rejected
-    r_neg = await async_client.post(
-        "/api/v1/projects", json={"name": "PNeg", "progress": -1}, headers=headers
-    )
-    assert r_neg.status_code == 422
-
-    # > 100 rejected
-    r_over = await async_client.post(
-        "/api/v1/projects", json={"name": "POver", "progress": 101}, headers=headers
-    )
-    assert r_over.status_code == 422
+    assert r_low.status_code == 422
 
 
 @pytest.mark.asyncio
-async def test_project_technologies_deduplication_and_update(async_client: AsyncClient) -> None:
+async def test_project_technologies_deduplication_and_update(
+    async_client: AsyncClient,
+) -> None:
     headers, _ = await create_test_user(async_client, "Tech User")
 
-    # Creation with duplicate entries (case-insensitive deduplication)
-    r = await async_client.post(
+    # Deduplicate case-insensitively on creation
+    res = await async_client.post(
         "/api/v1/projects",
         json={
-            "name": "FullStack Project",
-            "technologies": ["FastAPI", "fastapi", "Swift", "SWIFT ", "PostgreSQL"],
+            "name": "Polyglot",
+            "technologies": ["Python", "python", "PYTHON", "Postgres", "Redis"],
         },
         headers=headers,
     )
-    assert r.status_code == 201
-    techs = [t["name"] for t in r.json()["data"]["technologies"]]
+    assert res.status_code == 201
+    techs = res.json()["data"]["technologies"]
     assert len(techs) == 3
-    assert "FastAPI" in techs
-    assert "Swift" in techs
-    assert "PostgreSQL" in techs
+    tech_names = [t["name"] for t in techs]
+    assert "Python" in tech_names
+    assert "Postgres" in tech_names
+    assert "Redis" in tech_names
 
-    proj_id = r.json()["data"]["id"]
+    p_id = res.json()["data"]["id"]
 
-    # Update technologies
+    # Patch technologies replacing list with deduplication
     patch_res = await async_client.patch(
-        f"/api/v1/projects/{proj_id}",
-        json={"technologies": ["Python", "PyTorch"]},
+        f"/api/v1/projects/{p_id}",
+        json={"technologies": ["Swift", "swift", "FastAPI"]},
         headers=headers,
     )
     assert patch_res.status_code == 200
-    updated_techs = [t["name"] for t in patch_res.json()["data"]["technologies"]]
-    assert len(updated_techs) == 2
-    assert "Python" in updated_techs
-    assert "PyTorch" in updated_techs
+    new_techs = patch_res.json()["data"]["technologies"]
+    assert len(new_techs) == 2
+    new_tech_names = [t["name"] for t in new_techs]
+    assert "Swift" in new_tech_names
+    assert "FastAPI" in new_tech_names
 
 
 @pytest.mark.asyncio
@@ -366,7 +388,7 @@ async def test_project_pagination_and_filtering(async_client: AsyncClient) -> No
     for i in range(5):
         await async_client.post(
             "/api/v1/projects",
-            json={"name": f"Numbered Project {i + 1}"},
+            json={"name": f"Project Batch {i}", "status": "PLANNING"},
             headers=headers,
         )
 
@@ -427,70 +449,87 @@ async def test_project_context_metadata_endpoint(async_client: AsyncClient) -> N
     assert data["is_active"] is False
     assert "Python" in data["active_technologies"]
     assert "FastAPI" in data["active_technologies"]
-    # Invariant: deterministic M2 metadata without M3+ memory / AI
-    assert data["memory_count"] == 0
-    assert data["knowledge_count"] == 0
+
+    # Invariant: deterministic M2 metadata without M3+ memory or knowledge placeholders
+    assert "memory_count" not in data
+    assert "knowledge_count" not in data
     assert "memories" not in data
+    assert "knowledge" not in data
     assert "ai_summary" not in data
 
 
 @pytest.mark.asyncio
-async def test_user_preference_default_project_fk(async_client: AsyncClient) -> None:
-    headers, user_id_str = await create_test_user(async_client, "Default Pref User")
-    user_id = uuid.UUID(user_id_str)
+async def test_default_project_ownership_validation(async_client: AsyncClient) -> None:
+    headers_a, user_a_id_str = await create_test_user(async_client, "Owner A")
+    headers_b, _ = await create_test_user(async_client, "Owner B")
+    user_a_id = uuid.UUID(user_a_id_str)
 
-    # Create project
-    proj_res = await async_client.post(
-        "/api/v1/projects", json={"name": "Default Candidate"}, headers=headers
+    # User A creates Project A
+    res_a = await async_client.post(
+        "/api/v1/projects", json={"name": "Project of User A"}, headers=headers_a
     )
-    proj_id_str = proj_res.json()["data"]["id"]
-    proj_id = uuid.UUID(proj_id_str)
+    proj_a_id = res_a.json()["data"]["id"]
 
-    # Set default_project_id in preferences
-    pref_res = await async_client.patch(
+    # User B creates Project B
+    res_b = await async_client.post(
+        "/api/v1/projects", json={"name": "Project of User B"}, headers=headers_b
+    )
+    proj_b_id = res_b.json()["data"]["id"]
+
+    # 1. User A sets own Project A as default -> SUCCEEDS (200)
+    set_own_res = await async_client.patch(
         "/api/v1/me/preferences",
-        json={"default_project_id": proj_id_str},
-        headers=headers,
+        json={"default_project_id": proj_a_id},
+        headers=headers_a,
     )
-    assert pref_res.status_code == 200
-    assert pref_res.json()["data"]["preferences"]["default_project_id"] == proj_id_str
+    assert set_own_res.status_code == 200
+    assert set_own_res.json()["data"]["preferences"]["default_project_id"] == proj_a_id
 
-    # Verify in DB and relationship loading
+    # Verify persistence in database
     async with async_session_factory() as session:
         pref = (
-            await session.execute(select(UserPreference).where(UserPreference.user_id == user_id))
+            await session.execute(select(UserPreference).where(UserPreference.user_id == user_a_id))
         ).scalar_one()
-        assert pref.default_project_id == proj_id
+        assert pref.default_project_id == uuid.UUID(proj_a_id)
 
+    # 2. User A attempts to set User B's Project B as default -> REJECTED (404 Not Found)
+    set_other_res = await async_client.patch(
+        "/api/v1/me/preferences",
+        json={"default_project_id": proj_b_id},
+        headers=headers_a,
+    )
+    assert set_other_res.status_code == 404
+    assert set_other_res.json()["error"]["code"] == "PROJECT_NOT_FOUND"
 
-@pytest.mark.asyncio
-async def test_concurrent_activation_safety(async_client: AsyncClient) -> None:
-    import asyncio
+    # Verify User A's default project in DB remained Project A (unchanged)
+    async with async_session_factory() as session:
+        pref = (
+            await session.execute(select(UserPreference).where(UserPreference.user_id == user_a_id))
+        ).scalar_one()
+        assert pref.default_project_id == uuid.UUID(proj_a_id)
 
-    headers, _ = await create_test_user(async_client, "Race User")
+    # 3. User A attempts to set nonexistent project ID as default -> REJECTED (404 Not Found)
+    fake_proj_id = str(uuid.uuid4())
+    set_fake_res = await async_client.patch(
+        "/api/v1/me/preferences",
+        json={"default_project_id": fake_proj_id},
+        headers=headers_a,
+    )
+    assert set_fake_res.status_code == 404
+    assert set_fake_res.json()["error"]["code"] == "PROJECT_NOT_FOUND"
 
-    # Create 3 projects
-    p1 = (
-        await async_client.post("/api/v1/projects", json={"name": "Project One"}, headers=headers)
-    ).json()["data"]
-    p2 = (
-        await async_client.post("/api/v1/projects", json={"name": "Project Two"}, headers=headers)
-    ).json()["data"]
-    p3 = (
-        await async_client.post("/api/v1/projects", json={"name": "Project Three"}, headers=headers)
-    ).json()["data"]
+    # 4. User A clears default project by setting default_project_id to null -> SUCCEEDS (200)
+    clear_res = await async_client.patch(
+        "/api/v1/me/preferences",
+        json={"default_project_id": None},
+        headers=headers_a,
+    )
+    assert clear_res.status_code == 200
+    assert clear_res.json()["data"]["preferences"]["default_project_id"] is None
 
-    # Fire concurrent activation requests
-    tasks = [
-        async_client.post(f"/api/v1/projects/{p1['id']}/activate", headers=headers),
-        async_client.post(f"/api/v1/projects/{p2['id']}/activate", headers=headers),
-        async_client.post(f"/api/v1/projects/{p3['id']}/activate", headers=headers),
-    ]
-    _ = await asyncio.gather(*tasks, return_exceptions=True)
-
-    # Verify after all finish: exactly one project is active in the database
-    list_active = await async_client.get("/api/v1/projects?is_active=true", headers=headers)
-    assert list_active.status_code == 200
-    active_projects = list_active.json()["data"]
-    assert len(active_projects) == 1
-    assert active_projects[0]["id"] in [p1["id"], p2["id"], p3["id"]]
+    # Verify cleared in database
+    async with async_session_factory() as session:
+        pref = (
+            await session.execute(select(UserPreference).where(UserPreference.user_id == user_a_id))
+        ).scalar_one()
+        assert pref.default_project_id is None

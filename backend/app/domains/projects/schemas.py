@@ -88,5 +88,3 @@ class ProjectContextResponse(BaseModel):
     progress: int | None = 0
     is_active: bool
     active_technologies: list[str] = Field(default_factory=list)
-    memory_count: int = 0
-    knowledge_count: int = 0

@@ -171,8 +171,6 @@ nonisolated public struct ProjectContext: Codable, Sendable, Identifiable {
     public let progress: Int
     public let isActive: Bool
     public let activeTechnologies: [String]
-    public let memoryCount: Int
-    public let knowledgeCount: Int
 
     public var id: String { projectId }
 
@@ -186,8 +184,6 @@ nonisolated public struct ProjectContext: Codable, Sendable, Identifiable {
         case progress
         case isActive = "is_active"
         case activeTechnologies = "active_technologies"
-        case memoryCount = "memory_count"
-        case knowledgeCount = "knowledge_count"
     }
 }
 

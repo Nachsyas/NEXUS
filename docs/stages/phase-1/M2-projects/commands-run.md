@@ -99,3 +99,31 @@ xcodebuild -project apps/ios/NEXUS.xcodeproj -scheme NEXUS -destination "generic
 # Build Mac Agent regression target
 cd apps/mac-agent && swift build
 ```
+
+## Pre-Merge Corrective Pass Commands (2026-10-05)
+```bash
+# 1. Backend Linting & Formatting
+cd backend
+uv run ruff check .
+uv run ruff format .
+
+# 2. Strict Type Checking
+uv run mypy app tests
+
+# 3. Unit & Concurrency Tests
+uv run pytest -v tests/test_projects.py
+uv run pytest -v
+
+# 4. Database Migration Reversibility Check
+uv run alembic upgrade head
+uv run alembic downgrade -1
+uv run alembic upgrade head
+
+# 5. iOS Clean Build
+cd ../apps/ios
+xcodebuild -project NEXUS.xcodeproj -scheme NEXUS -destination "generic/platform=iOS Simulator" clean build CODE_SIGNING_ALLOWED=NO
+
+# 6. Mac Agent Build
+cd ../mac-agent
+swift build
+```

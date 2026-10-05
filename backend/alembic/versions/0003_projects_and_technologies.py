@@ -89,6 +89,13 @@ def upgrade() -> None:
     )
 
     # 3. Foreign key on user_preferences.default_project_id
+    # Clean up any orphaned default_project_id references before creating foreign key
+    op.execute(
+        "UPDATE user_preferences SET default_project_id = NULL "
+        "WHERE default_project_id IS NOT NULL "
+        "AND default_project_id NOT IN (SELECT id FROM projects)"
+    )
+
     op.create_foreign_key(
         "fk_user_preferences_default_project_id",
         "user_preferences",
@@ -104,6 +111,9 @@ def downgrade() -> None:
         "fk_user_preferences_default_project_id",
         "user_preferences",
         type_="foreignkey",
+    )
+    op.execute(
+        "UPDATE user_preferences SET default_project_id = NULL WHERE default_project_id IS NOT NULL"
     )
     op.drop_index(
         "ix_project_technologies_project_id",

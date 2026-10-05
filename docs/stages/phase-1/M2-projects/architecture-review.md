@@ -1,28 +1,40 @@
-# Milestone M2: Architecture Review
+# Stage M2: Architecture Review
 
-## 1. Domain Separation & Modular Monolith Alignment
-The Projects domain strictly respects the Modular Monolith architecture defined in ADR-001:
-- **Clean Boundaries:** `backend/app/domains/projects` encapsulates all project entities, schemas, business logic, and exceptions.
-- **Independence from Intelligence Layers:** Projects does NOT import or depend on Memory Core (M3), Goal Engine (M4), Context Engine (M5), or Device Mesh (M6). Future milestones will depend on Projects for context scoping, preserving a unidirectional dependency hierarchy:
-  `M3 (Memory) -> M2 (Projects) -> M1 (Users & Identity) -> M0 (Foundation)`
-- **RFC Envelope Integrity:** All 7 RESTful endpoints return responses enveloped inside `{ "success": true, "data": ..., "error": null, "meta": ... }`. Errors use typed application exceptions (`ProjectError` family) with RFC-compliant error envelopes and numeric status codes.
+## Architectural Evaluation
 
-## 2. Invariant Architecture
-1. **One Active Project per User:**
-   - Enforced at the persistence layer using PostgreSQL partial unique index `uq_projects_user_active`.
-   - Guaranteed at the application service layer via atomic transactions.
-2. **Per-User Slug Uniqueness:**
-   - Slugs are scoped per user via unique constraint `(user_id, slug)`.
-   - Generated using Unicode NFKD normalization with deterministic collision suffixes (`-2`, `-3`).
-3. **Referential Integrity:**
-   - `User.projects` cascade on delete.
-   - `Project.technologies` cascade on delete.
-   - `UserPreference.default_project_id` foreign key sets null on delete (`ON DELETE SET NULL`), preventing cascading destruction of user profile settings.
+### 1. Modular Monolith Alignment (ADR-001)
+- **Domain Encapsulation:** The Projects domain is strictly isolated inside `backend/app/domains/projects/`. All internal business logic, database queries, and slug algorithms reside in `ProjectService`.
+- **Independence from Intelligence Layers:** Projects does NOT import or depend on Memory Core (M3), AI Conversation (M4), Context Engine (M5), or Device Pairing (M6). Future milestones will depend on Projects for context scoping, preserving a unidirectional dependency hierarchy:
+  ```
+  [Device Pairing (M6)]
+            │
+            ▼
+  [Context Engine (M5)]
+            │
+            ▼
+  [AI Conversation (M4)]
+            │
+            ▼
+  [Memory Core (M3)]
+            │
+            ▼
+  [Projects Domain (M2)]
+            │
+            ▼
+  [Identity & Users (M1)]
+  ```
+- **Cross-Domain Reference via Service Layer:** In `backend/app/domains/users/service.py`, `UserService.update_user_preferences` verifies that `default_project_id` references a project owned by the authenticated user using `select(Project.id).where(Project.id == target, Project.user_id == user_id)`. Non-owned or non-existent projects trigger `ProjectNotFoundError`, preventing cross-tenant leakage.
 
-## 3. iOS Client Architecture
-- **Layer Separation:**
-  - Network transport: `NexusAPIClient` protocol-backed URLSession layer.
-  - State management: `@MainActor ProjectManager: ObservableObject`.
-  - Presentation: Lightweight SwiftUI views (`ProjectsListView`, `ProjectDetailView`, `CreateProjectSheet`).
-- **No Mock in Production:** Production views interact directly with `NexusAPIClient` initialized against the configured base URL.
-- **Session Preservation:** Authenticated access tokens are read securely from Keychain without saving tokens in user defaults or memory caches.
+### 2. Relational Schema & Persistence (ADR-002, ADR-006)
+- **Primary Keys:** RFC 9562 UUIDv7 (`uuid6.uuid7`) generated at model creation for time-ordered locality in B-Tree indexes.
+- **Foreign Key Cascades:** `projects.user_id -> users.id` with `ON DELETE CASCADE`. `project_technologies.project_id -> projects.id` with `ON DELETE CASCADE`.
+- **User Preference Reference:** `user_preferences.default_project_id -> projects.id` with `ON DELETE SET NULL`. Migration `0003` includes safe cleanup for orphaned references prior to foreign key creation.
+- **Constraints & Indexes:**
+  - `uq_projects_user_slug`: Enforces slug uniqueness per tenant. Bounded retry loop (5 attempts) with nested savepoints prevents raw 500 errors on concurrent creation.
+  - `chk_projects_progress_bounds`: Validates progress is between 0 and 100 at the DB engine level.
+  - `uq_projects_user_active`: Partial unique index `UNIQUE (user_id) WHERE is_active = true` guarantees that no tenant can ever possess more than one active project.
+  - Serialization: `ProjectService.activate_project` executes `select(User.id).where(User.id == user_id).with_for_update()` to prevent race conditions during concurrent activation calls.
+
+### 3. Context Boundary Defense
+- **M2 Context Foundation:** The context endpoint `/api/v1/projects/{project_id}/context` is strictly confined to deterministic metadata (`project_id`, `name`, `slug`, `summary`, `status`, `priority`, `progress`, `is_active`, `active_technologies`).
+- **No Premature Placeholders:** Placeholders for memory or knowledge counts have been removed to prevent prematurely freezing downstream API contracts.
