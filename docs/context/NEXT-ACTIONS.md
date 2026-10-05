@@ -1,34 +1,30 @@
-# NEXT ACTIONS — Post-M1 / Transition to M2
+# NEXT ACTIONS: Milestone M2 Completion & Next Steps
 
-1. **Milestone M1 Completion Status:**
-   - Account & Identity Foundation: **CLOSED — COMPLETE & RATIFIED**.
-   - Governance: **ADR-020 ACCEPTED**, **TBD-028 & TBD-029 RESOLVED**.
-   - Backend test suite: **23/23 passing**.
-   - iOS target compilation: **SUCCEEDED**.
-   - Stage documentation: **All 12 files completed at canonical path `docs/stages/phase-1/M1-account-identity/`**.
-   - Apple Auth Status: `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED`.
-   - Standing Autonomous Execution: **HALTED AT M1 BOUNDARY**.
+**Date:** 2026-10-05  
+**Current Milestone:** Milestone M2 — Projects (IMPLEMENTATION COMPLETE ON `milestone/m2-projects`)  
+**Next Milestone:** Milestone M3 — Memory Core (AWAITING PR MERGE & USER AUTHORIZATION)  
 
-2. **Milestone M2 Authorization Gateway:**
-   - The canonical next milestone is **Milestone M2 — Projects** (Memory Core is M3).
-   - Standing authorization applies strictly to M1 closure.
-   - Milestone M2 receives its own execution authorization when the user explicitly issues:
-     `START M2 PROJECTS`
-   - Autonomous execution halts strictly at the M1/M2 boundary until this command is received. Do NOT start M2 autonomously.
+---
 
-3. **Canonical Milestone Order (Locked Roadmap):**
-   - M0 Foundation (Closed & Ratified)
-   - M1 Account & Identity (Closed & Ratified)
-   - **M2 Projects (Next)**
-   - M3 Memory Core
-   - M4 AI Conversation
-   - M5 Context Engine
-   - M6 Device Pairing
-   - M7 Device Intelligence
-   - M8 Remote Safe Actions
-   - M9 Permission + Audit Hardening
-   - M10 Knowledge Vault
-   - M11 Research Radar
-   - M12 Voice + Action Button
-   - M13 UX Polish
-   - M14 Beta Reliability
+## Immediate Next Steps (M2 Finalization)
+1. [x] Implement backend Projects domain models, service, schemas, and router.
+2. [x] Create and verify Alembic migration `0003_projects_and_technologies.py`.
+3. [x] Implement iOS SwiftUI views and `ProjectManager`.
+4. [x] Verify quality gates (Ruff, Mypy, Pytest 36/36, iOS xcodebuild, Mac Agent swift build).
+5. [x] Author all 12 stage documentation files in `docs/stages/phase-1/M2-projects/`.
+6. [x] Update API contract (`docs/api/api-contract.md`) and governance context files.
+7. [ ] Stage and commit changes to `milestone/m2-projects`.
+8. [ ] Push `milestone/m2-projects` to `origin`.
+9. [ ] Open Pull Request against `main`.
+10. [ ] Verify GitHub Actions CI status.
+11. [ ] Present M2 Completion Report to User and STOP (Strict Stop Condition: Do NOT start M3).
+
+---
+
+## Subsequent Milestone (Phase 1 / M3 — Memory Core)
+*To be initiated only after explicit user authorization following M2 PR merge.*
+- **Scope:**
+  - Memory extraction and classification.
+  - pgvector integration for semantic embeddings.
+  - Unidirectional dependency on Projects (`Project.id` contextual bounding).
+  - Short-term vs long-term memory stratification.
