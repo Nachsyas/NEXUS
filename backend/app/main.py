@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Request, status
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -15,6 +16,7 @@ from app.core.logging import logger, setup_logging
 from app.core.middleware import RequestIDMiddleware
 from app.core.redis import close_redis
 from app.domains.auth.security import AuthenticationError
+from app.domains.memories.exceptions import MemoryError
 from app.domains.projects.exceptions import ProjectError
 
 
@@ -86,6 +88,23 @@ def create_application() -> FastAPI:
             headers={"X-Request-ID": request_id},
         )
 
+    # Memories Domain Exception Handler
+    @app.exception_handler(MemoryError)
+    async def memory_exception_handler(request: Request, exc: MemoryError) -> JSONResponse:
+        request_id = getattr(request.state, "request_id", "unknown")
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "success": False,
+                "error": {
+                    "code": exc.code,
+                    "message": exc.message,
+                    "details": None,
+                },
+            },
+            headers={"X-Request-ID": request_id},
+        )
+
     # Pydantic Request Validation Error Handler
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(
@@ -100,7 +119,7 @@ def create_application() -> FastAPI:
                 "error": {
                     "code": "VALIDATION_ERROR",
                     "message": "Request payload validation failed.",
-                    "details": exc.errors(),
+                    "details": jsonable_encoder(exc.errors()),
                 },
             },
             headers={"X-Request-ID": request_id},

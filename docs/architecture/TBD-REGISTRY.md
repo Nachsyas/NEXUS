@@ -1,7 +1,7 @@
 # TBD Registry — Decisions To Be Decided
 
 **Status:** CANONICAL REGISTRY  
-**Version:** 1.7  
+**Version:** 1.8  
 
 Setiap item bertanda TBD di bawah ini belum diputuskan. Agent dilarang mengimplementasikan asumsi sepihak sebelum keputusan diresmikan via ADR berstatus ACCEPTED atau dokumen spesifikasi yang disetujui pengguna.
 
@@ -36,3 +36,4 @@ Setiap item bertanda TBD di bawah ini belum diputuskan. Agent dilarang mengimple
 | **TBD-027** | Mac Agent Phase 1 packaging architecture | Mac Agent & OS Integration | Evaluasi packaging macOS untuk Keychain, TCC, lifecycle, status menu bar UI | Swift Package CLI Executable vs App Bundle (.app) Menu Bar Utility | M6 Device Pairing / M7 Device Intelligence | OPEN | ADR-007 |
 | **TBD-028** | Access Token Format & Signing Architecture | Auth & Session Management | Evaluasi format dan penandatanganan token akses (symmetric HS256 vs asymmetric RS256) | HS256 JWT (Phase 1 approved baseline) | M1 Account & Identity | RESOLVED | ADR-020 |
 | **TBD-029** | Default Token Expiration & Rotation TTLs | Session Management | Penentuan durasi kadaluarsa token akses dan token refresh | Access 15m / Refresh 30d (Phase 1 approved baseline) | M1 Account & Identity | RESOLVED | ADR-020 |
+| **TBD-030** | Production Memory Embedding Model & Provider Selection | Memory Core & Vector Store | Evaluasi provider dan model embedding production untuk semantic retrieval memory tanpa vendor lock-in | OpenAI text-embedding-3-small, Voyage AI, Local BGE/Nomic | M4 AI Conversation / M10 Knowledge Ingestion | OPEN | ADR-004, ADR-011 |

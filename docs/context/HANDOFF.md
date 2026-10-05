@@ -1,54 +1,50 @@
-# AGENT HANDOFF: Milestone M2 Formally Closed
+# AGENT HANDOFF: Milestone M3 Implementation Complete
 
 **Date:** 2026-10-05  
-**Milestone:** Phase 1 / Milestone M2 — Projects Domain Foundation  
-**Status:** CLOSED — COMPLETE (Merged to `main` via PR #1)  
-**Merge Commit:** `4a5342e33de7e01b602dc38a40e567f0ab352864`  
+**Milestone:** Phase 1 / Milestone M3 — Memory Core Domain & Control Center Foundation  
+**Branch:** `milestone/m3-memory-core`  
+**Status:** IMPLEMENTATION COMPLETE & VERIFIED — READY FOR PR  
 **Lead Agent:** Antigravity  
 
 ---
 
-## 1. Summary of Work Delivered & Merged to Main
-- **Backend Projects Domain:**
-  - Full relational implementation for `projects` and `project_technologies`.
-  - Database partial unique index `uq_projects_user_active` enforces the invariant that at most one project per user is active at any time.
-  - User row-level lock (`select(User.id).where(User.id == user_id).with_for_update()`) serializes activation requests, preventing race conditions.
-  - Deterministic slug generation with safe Unicode normalization, per-user collision suffixing (`slug`, `slug-2`, `slug-3`), and savepoint retry loops (`db.begin_nested()`) preventing 500 errors.
-  - Multi-tenant default project ownership validation in `UserService.update_user_preferences` (404 rejection on cross-tenant assignment).
-  - Strict tenant isolation and IDOR protection across all 7 endpoints (`POST`, `GET` list, `GET` detail, `PATCH`, `POST activate`, `POST archive`, `GET context`).
-  - Zero M3+ scope leakage: `/api/v1/projects/{project_id}/context` returns deterministic metadata only.
-- **Database Migrations:**
-  - `backend/alembic/versions/0003_projects_and_technologies.py` verified forward and backward with orphan cleanup logic.
-  - Linked `user_preferences.default_project_id` foreign key with `ON DELETE SET NULL`.
+## 1. Summary of Work Delivered
+- **Backend Memories Domain:**
+  - 10 canonical memory types enforced (`PERSONAL_FACT`, `PREFERENCE`, `INTEREST`, `SKILL`, `GOAL`, `BEHAVIOR_PATTERN`, `PROJECT_FACT`, `PROJECT_DECISION`, `PROJECT_PROGRESS`, `PROJECT_NEXT_ACTION`).
+  - Project scoping strictly enforced at schema and database level.
+  - NEVER_STORE policy rejecting high-confidence credentials and secrets with zero leakage.
+  - Concurrency serialization via user row-level locking (`with_for_update()`).
+  - Deterministic deduplication and conflict superseding.
+  - Soft forget (`status = FORGOTTEN`) and query-time expiration filtering.
+  - pgvector cosine distance search (`Vector(1536)`).
+  - Clean `EmbeddingProvider` decoupling with `TBD-030` registered.
+- **Database Migration:**
+  - Alembic migration `0004_memories_core.py` verified forward and backward.
 - **iOS Application:**
-  - `ProjectModels.swift`, `ProjectManager.swift`, `NexusAPIClient.swift` extensions.
-  - SwiftUI views: `ProjectsListView`, `CreateProjectSheet`, `ProjectDetailView`.
-  - Authenticated `TabView` navigation in `ContentView.swift`.
+  - `MemoryModels.swift`, `NexusAPIClient.swift`, `MemoryManager.swift`.
+  - `MemoriesListView.swift`, `CreateMemorySheet.swift`, `MemoryDetailView.swift`.
+  - Memories tab in `ContentView.swift`.
 - **Quality Gates:**
-  - Pytest: 37 passed (14 M2 tests, 23 M1 tests, including real concurrency tests).
-  - Ruff: 0 lint errors, 42 files formatted.
-  - Mypy: 0 errors in 37 files.
+  - Pytest: 51/51 passed (100%).
+  - Ruff: 0 errors.
+  - Mypy: 0 errors in 46 source files.
   - iOS Simulator: Build succeeded.
   - Mac Agent: Build succeeded.
 - **Stage Documentation:**
-  - All 12 files completed and synchronized in `docs/stages/phase-1/M2-projects/`.
-  - API contract and context governance files fully updated.
+  - All 12 files completed in `docs/stages/phase-1/M3-memory-core/`.
 
 ---
 
 ## 2. Invariants & Security Posture
-- User A cannot observe, update, activate, or archive User B's projects (IDOR returns 404).
-- User A cannot set `default_project_id` to User B's project (returns 404).
-- At most one active project per user is enforced by PostgreSQL engine partial unique index and serialized row locking.
-- Archived projects cannot remain active; activating an archived project is rejected.
-- Progress values are strictly bound between 0 and 100.
-- `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED` remains open until physical device testing.
+- "Store meaning, not everything."
+- Generic memory types are strictly rejected.
+- Candidate secrets are rejected and never logged or reflected.
+- User A cannot access or mutate User B's memories (safe 404 IDOR protection).
+- `LIVE APPLE E2E: NOT YET MANUALLY VERIFIED` remains open until physical device verification.
 
 ---
 
-## 3. Repository State
-- Branch: `main`
-- Merged PR: PR #1 (`4a5342e33de7e01b602dc38a40e567f0ab352864`)
-- Status: All M2 code and documentation merged and synchronized on `main`.
-- Next Milestone: M3 (Memory Core) — NOT STARTED (Strictly awaiting separate explicit user authorization).
-- Standing Autonomous Execution: HALTED AT M2 BOUNDARY.
+## 3. Next Steps
+- Branch: `milestone/m3-memory-core`
+- Commit, push, open Pull Request to `main`.
+- Stop at M3 boundary; await user authorization for M4.
