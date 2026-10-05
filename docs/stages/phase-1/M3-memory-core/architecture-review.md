@@ -15,14 +15,19 @@
   Generic catch-all types are forbidden at schema validation level.
 
 ## 2. Concurrency & Deduplication Architecture
-- **Per-User Write Serialization:**
+- **Per-User Write Serialization & Transaction Boundaries:**
   In concurrent environments, multiple calls attempting to write identical or conflicting memories could create race conditions.
   `MemoryService` executes `SELECT id FROM users WHERE id = :user_id FOR UPDATE` before querying existing active memories.
   This serializes concurrent mutations for a single tenant without blocking other tenants.
+  `MemoryService` delegates transaction commits to the API / unit-of-work layer (`get_db` and router), utilizing `db.flush()` internally to support composable multi-domain transactions.
+- **Deterministic Identity & Bounded Hash (identity_hash):**
+  Incoming subject and predicate are normalized (`NFKD`, lowercase, stripped) and deterministically encoded into a canonical JSON array `[norm_subject, norm_predicate]` hashed with SHA-256 into `identity_hash` (`CHAR(64)`).
+  This eliminates index entry size overflows from Unicode normalization expansion while supporting fast composite index lookups via `ix_memories_identity_lookup` on `(user_id, project_id, memory_type, identity_hash, status)`.
+  A defensive in-memory check confirms exact normalized text equivalence against rare hash collision.
 - **Deterministic Deduplication:**
-  An incoming memory is normalized (`NFKD`, lowercase, stripped). If an active memory exists with the same identity key and identical normalized value, the existing row is returned without duplicate insertion.
+  If an active memory exists with the matching `identity_hash` and identical normalized value, the existing row is returned without duplicate insertion.
 - **Supersede Mechanism:**
-  When an incoming memory matches the identity key but provides a different value, the existing memory is updated to `status = 'SUPERSEDED'`, `superseded_by = :new_id`, and the new memory is inserted as `ACTIVE`.
+  When an incoming memory matches the `identity_hash` but provides a different value, the existing memory is updated to `status = 'SUPERSEDED'`, `superseded_by = :new_id`, and the new memory is inserted as `ACTIVE`.
 
 ## 3. Vector Storage & Provider Boundary (TBD-004)
 - **Database Column:**

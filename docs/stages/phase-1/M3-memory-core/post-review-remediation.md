@@ -32,3 +32,14 @@
 12. **Evidence & Performance Honesty:**
     - Replaced all claims of "standard credential datasets" and "Zero False Positives" with honest statements reflecting the synthetic test matrix and benign matrix results.
     - Updated performance documentation to state "Observed Local Baseline" and broadened automated test latency assertions to non-production regression guards (< 2000ms) to ensure non-flaky execution.
+13. **Embedding Dimension Boundary & SQL Filter:**
+    - Declared `@property def dimension(self) -> int` on `EmbeddingProvider` protocol.
+    - Verified all vector operations enforce `expected_dim=provider.dimension`.
+    - Added `func.vector_dims(Memory.embedding) == expected_dim` SQL predicate in pgvector semantic search to prevent runtime PostgreSQL dimension mismatch exceptions.
+14. **Bounded Deterministic Identity Storage (`identity_hash`):**
+    - Identified vulnerability where Unicode NFKD decomposition can expand source characters beyond 255 code points, causing `VARCHAR(255)` database overflow.
+    - Replaced variable-length normalized string columns in the lookup index with a fixed-size `CHAR(64)` lowercase hex SHA-256 digest (`identity_hash`) derived from canonical JSON serialization `[norm_subject, norm_predicate]`.
+    - Updated `ix_memories_identity_lookup` to `(user_id, project_id, memory_type, identity_hash, status)`, preventing B-tree entry overflow. Added in-memory defensive check against rare hash collisions.
+15. **Service Transaction Boundary & Composable Flushing:**
+    - Removed internal `await db.commit()` and `await db.refresh()` from `MemoryService.create_memory()`.
+    - Service calls now use `flush()`, preserving the user row lock until the router / unit-of-work commits the transaction. This enables atomic multi-domain orchestration for Milestone M4 without premature commit side-effects.

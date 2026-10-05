@@ -17,7 +17,7 @@
   - Deterministic deduplication and conflict superseding.
   - Soft forget (`status = FORGOTTEN`) and query-time expiration filtering.
   - pgvector cosine distance search (`unconstrained Vector()`).
-  - Clean `EmbeddingProvider` decoupling with `TBD-004` registered.
+  - Clean `EmbeddingProvider` decoupling consolidated under existing `TBD-004`.
 - **Database Migration:**
   - Alembic migration `0004_memories_core.py` verified forward and backward.
 - **iOS Application:**
@@ -25,7 +25,7 @@
   - `MemoriesListView.swift`, `CreateMemorySheet.swift`, `MemoryDetailView.swift`.
   - Memories tab in `ContentView.swift`.
 - **Quality Gates:**
-  - Pytest: 54/54 passed (100%).
+  - Pytest: 59/59 passed (100%).
   - Ruff: 0 errors.
   - Mypy: 0 errors in 46 source files.
   - iOS Simulator: Build succeeded.

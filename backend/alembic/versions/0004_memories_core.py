@@ -40,8 +40,7 @@ def upgrade() -> None:
         sa.Column("memory_type", sa.String(length=50), nullable=False),
         sa.Column("subject", sa.String(length=255), nullable=False),
         sa.Column("predicate", sa.String(length=255), nullable=False),
-        sa.Column("identity_subject", sa.String(length=255), nullable=False),
-        sa.Column("identity_predicate", sa.String(length=255), nullable=False),
+        sa.Column("identity_hash", sa.String(length=64), nullable=False),
         sa.Column("value_text", sa.Text(), nullable=False),
         sa.Column(
             "value_json",
@@ -89,14 +88,7 @@ def upgrade() -> None:
     op.create_index(
         "ix_memories_identity_lookup",
         "memories",
-        [
-            "user_id",
-            "project_id",
-            "memory_type",
-            "identity_subject",
-            "identity_predicate",
-            "status",
-        ],
+        ["user_id", "project_id", "memory_type", "identity_hash", "status"],
     )
     op.create_index("ix_memories_expires_at", "memories", ["expires_at"])
     op.create_index("ix_memories_user_updated_at", "memories", ["user_id", "updated_at"])

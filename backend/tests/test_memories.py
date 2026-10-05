@@ -1002,3 +1002,76 @@ async def test_mixed_dimension_safety_in_semantic_search(async_client: AsyncClie
 
     # Reset to default provider
     reset_embedding_provider()
+
+
+@pytest.mark.asyncio
+async def test_unicode_normalization_expansion_safety(async_client: AsyncClient) -> None:
+    """Verify that Unicode inputs whose NFKD normalization expands beyond 255 chars
+
+    do not overflow database storage and preserve deterministic deduplication.
+    """
+    import unicodedata
+
+    headers, _ = await create_test_user(async_client, "ExpansionTester")
+
+    # Subject with composed accented characters: exactly 255 characters long.
+    # Each 'é' (U+00E9) decomposes under NFKD into 'e' (U+0065) + combining acute accent (U+0301).
+    # Raw length is 255 chars, but NFKD decomposed length is 510 chars!
+    subject_composed = "é" * 255
+    assert len(subject_composed) == 255
+
+    subject_decomposed = unicodedata.normalize("NFKD", subject_composed)
+    assert len(subject_decomposed) == 510  # Would overflow a VARCHAR(255) column
+
+    # 1. Post composed memory (valid length <= 255)
+    payload_a = {
+        "memory_type": "PERSONAL_FACT",
+        "subject": subject_composed,
+        "predicate": "expanded_key",
+        "value_text": "Accent expansion test value",
+    }
+    res_a = await async_client.post("/api/v1/memories", headers=headers, json=payload_a)
+    assert res_a.status_code == 201, (
+        f"Expected 201 Created but got {res_a.status_code}: {res_a.text}"
+    )
+    mem_id_a = res_a.json()["data"]["id"]
+
+    # 2. Re-assert memory using identical value but composed vs decomposed forms within 255 raw chars:
+    # A subject of 100 decomposed characters (100 'é' = 200 code points, within 255 raw length):
+    subject_100_composed = "é" * 100
+    subject_100_decomposed = unicodedata.normalize("NFKD", subject_100_composed)
+    assert len(subject_100_composed) == 100
+    assert len(subject_100_decomposed) == 200  # Valid raw input <= 255, decomposed = 200
+
+    payload_100_comp = {
+        "memory_type": "PERSONAL_FACT",
+        "subject": subject_100_composed,
+        "predicate": "key_100",
+        "value_text": "Decomposed equivalence test",
+    }
+    res_100_a = await async_client.post("/api/v1/memories", headers=headers, json=payload_100_comp)
+    assert res_100_a.status_code == 201
+    id_100_a = res_100_a.json()["data"]["id"]
+
+    payload_100_decomp = {
+        "memory_type": "PERSONAL_FACT",
+        "subject": subject_100_decomposed,
+        "predicate": "key_100",
+        "value_text": "Decomposed equivalence test",
+    }
+    res_100_b = await async_client.post(
+        "/api/v1/memories", headers=headers, json=payload_100_decomp
+    )
+    assert res_100_b.status_code == 201
+    id_100_b = res_100_b.json()["data"]["id"]
+    assert id_100_a == id_100_b, "Composed and decomposed forms must resolve to the same memory ID"
+
+    # 3. Re-posting the 255-char composed memory deduplicates cleanly
+    res_repost = await async_client.post("/api/v1/memories", headers=headers, json=payload_a)
+    assert res_repost.status_code == 201
+    assert res_repost.json()["data"]["id"] == mem_id_a
+
+    # 4. Verify listing has exactly 2 active memories (the 255-char one and the 100-char one)
+    res_list = await async_client.get("/api/v1/memories", headers=headers)
+    assert res_list.status_code == 200
+    assert res_list.json()["meta"]["total"] == 2

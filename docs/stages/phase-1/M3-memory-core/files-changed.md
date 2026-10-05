@@ -1,17 +1,17 @@
 # Milestone M3: Files Changed & Added
 
 ## Backend Domain & Migration
-- `backend/alembic/versions/0004_memories_core.py`: Alembic migration for `memories` table with unconstrained `Vector()` pgvector column, normalized Unicode `identity_subject` and `identity_predicate` columns, and composite indexes (`ix_memories_identity_lookup`).
-- `backend/app/domains/memories/models.py`: SQLAlchemy `Memory` model with `identity_subject` and `identity_predicate` columns, enums (`MemoryType`, `MemoryStatus`, `MemorySensitivity`, `MemorySourceType`), and composite index definitions.
+- `backend/alembic/versions/0004_memories_core.py`: Alembic migration for `memories` table with unconstrained `Vector()` pgvector column, bounded SHA-256 `identity_hash` column, and composite index `ix_memories_identity_lookup` on `(user_id, project_id, memory_type, identity_hash, status)`.
+- `backend/app/domains/memories/models.py`: SQLAlchemy `Memory` model with bounded `identity_hash` column, enums (`MemoryType`, `MemoryStatus`, `MemorySensitivity`, `MemorySourceType`), and composite index definitions.
 - `backend/app/domains/memories/schemas.py`: Pydantic v2 schemas (`MemoryCreate`, `MemoryUpdate`, `MemoryResponse`, `MemorySearchRequest`, `MemorySearchHit`) with `value_text` bound (1..10000) and `value_json` safety bounds (max 64KB, max depth 5).
 - `backend/app/domains/memories/exceptions.py`: Domain exception definitions (`MemoryNotFoundError`, `MemorySecretRejectedError`, `EmbeddingUnavailableError`, `EmbeddingValidationError`).
 - `backend/app/domains/memories/safety.py`: `MemorySafetyPolicy` with regex scanning for NEVER_STORE credential policy and dictionary key scanning.
 - `backend/app/domains/memories/embedding.py`: `EmbeddingProvider` protocol with `.dimension` property contract, `UnavailableEmbeddingProvider`, `DeterministicTestEmbeddingProvider`, and `validate_embedding_vector`.
-- `backend/app/domains/memories/service.py`: `MemoryService` implementing CRUD, user row-level locking, Unicode-normalized deterministic deduplication, conflict superseding, lazy expiration normalization, stale embedding prevention, dimension validation, and pgvector cosine similarity search guarded by `func.vector_dims`.
+- `backend/app/domains/memories/service.py`: `MemoryService` implementing CRUD, user row-level locking, bounded SHA-256 deterministic identity deduplication, conflict superseding, lazy expiration normalization, stale embedding prevention, dimension validation, flush-only transaction boundaries, and pgvector cosine similarity search guarded by `func.vector_dims`.
 - `backend/app/api/v1/memories.py`: FastAPI endpoints for `/api/v1/memories` with typed enum query filters.
 - `backend/app/api/v1/router.py`: Registered `memories_router`.
 - `backend/app/main.py`: Pre-validation secret redaction in `RequestValidationError` handler omitting raw input and sanitizing `ctx`.
-- `backend/tests/test_memories.py`: 21 comprehensive test cases covering auth, schema invariants, NEVER_STORE policy, secret redaction, deduplication, conflict superseding, concurrent writes, lazy expiration, typed query filters, PATCH null-clearing, stale embedding prevention, multi-tenancy, semantic search, vector validation boundary, payload size/depth bounds, Unicode canonical equivalence, mixed dimension search safety, and performance regression guards.
+- `backend/tests/test_memories.py`: 22 comprehensive test cases covering auth, schema invariants, NEVER_STORE policy, secret redaction, deduplication, conflict superseding, concurrent writes, lazy expiration, typed query filters, PATCH null-clearing, stale embedding prevention, multi-tenancy, semantic search, vector validation boundary, payload size/depth bounds, Unicode canonical equivalence, mixed dimension search safety, and performance regression guards.
 
 ## iOS Client Foundation
 - `apps/ios/NEXUS/Domain/Memories/MemoryModels.swift`: Swift data models, enums (`MemoryType`, `MemoryStatus`, `MemorySensitivity` including `RESTRICTED`), and presentation helpers.

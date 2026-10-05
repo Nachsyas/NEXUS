@@ -1,8 +1,8 @@
 # Milestone M3 Test Results
 
 ## 1. Automated Test Summary
-- **Backend Test Suite:** 58/58 passed
-  - `tests/test_memories.py`: 21/21 passed
+- **Backend Test Suite:** 59/59 passed
+  - `tests/test_memories.py`: 22/22 passed
   - `tests/test_auth_identity.py`: 15/15 passed
   - `tests/test_projects.py`: 14/14 passed
   - `tests/test_health.py`: 2/2 passed
@@ -13,6 +13,7 @@
 - **Type Checker (Mypy):** Clean pass (0 errors in 46 source files).
 - **Alembic Reversibility:** Full downgrade and re-upgrade cycle verified (`0004_memories_core` -> `0003_projects_and_technologies` -> `0004_memories_core`).
 - **iOS Simulator Target (`xcodebuild`):** Clean build succeeded (`** BUILD SUCCEEDED **`).
+- **Mac Agent Target (`swift build`):** Clean build succeeded (`[1 / 4] nexus-agent-product Build complete! (0.56 secs)`).
 - **iOS Contract Verification:** Swift decoding of `MemorySensitivity.restricted` from `"RESTRICTED"` verified; Xcode project has no separate XCTest target (documented as `NOT AUTOMATED` for XCTest suite, verified via clean build and runtime decoding script).
 
 ## 2. Memory Test Breakdown (`tests/test_memories.py`)
@@ -37,3 +38,4 @@
 19. `test_memory_payload_size_and_json_safety_bounds`: Verified `value_text` 1..10000 bounds (10000 accepted, 10001 rejected with 422), `value_json` max 64KB and max depth 5 bounds (oversized and deep nesting rejected with 422), and confirmed rejected payloads are not echoed in validation error responses.
 20. `test_unicode_deterministic_identity`: Verified canonically equivalent Unicode strings (precomposed "Café" vs decomposed "Cafe\u0301") deduplicate to the same ACTIVE memory without duplicate rows; conflicting value supersedes; distinct Unicode strings form separate identities.
 21. `test_mixed_dimension_safety_in_semantic_search`: Verified pgvector `vector_dims` SQL predicate safely filters out vectors of mismatched dimensions during vector similarity search without raising database operator errors.
+22. `test_unicode_normalization_expansion_safety`: Verified that subjects whose NFKD normalization expands beyond 255 chars (e.g. 255 composed 'é' chars expanding to 510 decomposed code points) do not overflow database storage due to bounded 64-char SHA-256 `identity_hash` and preserve deterministic deduplication.

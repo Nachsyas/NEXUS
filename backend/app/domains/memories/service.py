@@ -1,3 +1,5 @@
+import hashlib
+import json
 import logging
 import unicodedata
 import uuid
@@ -31,6 +33,15 @@ def normalize_key(text: str) -> str:
     """Normalize subject or predicate for deterministic identity matching."""
     normalized = unicodedata.normalize("NFKD", text)
     return normalized.strip().lower()
+
+
+def compute_identity_hash(norm_subject: str, norm_predicate: str) -> str:
+    """Compute bounded deterministic SHA-256 hex digest for memory identity.
+
+    Uses canonical JSON array serialization to prevent delimiter collision.
+    """
+    serialized = json.dumps([norm_subject, norm_predicate], ensure_ascii=False)
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
 def derive_summary(subject: str, predicate: str, value_text: str, max_chars: int = 500) -> str:
@@ -74,6 +85,7 @@ class MemoryService:
 
         norm_subject = normalize_key(data.subject)
         norm_predicate = normalize_key(data.predicate)
+        identity_hash = compute_identity_hash(norm_subject, norm_predicate)
         norm_value = data.value_text.strip()
         now = utc_now()
 
@@ -82,11 +94,17 @@ class MemoryService:
             Memory.user_id == user_id,
             Memory.project_id == data.project_id,
             Memory.memory_type == data.memory_type.value,
-            Memory.identity_subject == norm_subject,
-            Memory.identity_predicate == norm_predicate,
+            Memory.identity_hash == identity_hash,
             Memory.status == MemoryStatus.ACTIVE.value,
         )
         existing = (await db.execute(lookup_stmt)).scalars().first()
+
+        # Defensive collision guard (verify normalized text equivalence against rare SHA-256 collision)
+        if existing is not None and (
+            normalize_key(existing.subject) != norm_subject
+            or normalize_key(existing.predicate) != norm_predicate
+        ):
+            existing = None
 
         # 5. Handle Expired Identity Reassertion:
         # If existing memory has expires_at <= now, it is effectively EXPIRED.
@@ -128,8 +146,7 @@ class MemoryService:
             memory_type=data.memory_type.value,
             subject=data.subject.strip(),
             predicate=data.predicate.strip(),
-            identity_subject=norm_subject,
-            identity_predicate=norm_predicate,
+            identity_hash=identity_hash,
             value_text=data.value_text.strip(),
             value_json=data.value_json,
             summary=summary,
@@ -162,8 +179,6 @@ class MemoryService:
                 },
             )
 
-        await db.commit()
-        await db.refresh(new_memory)
         return new_memory
 
     @staticmethod

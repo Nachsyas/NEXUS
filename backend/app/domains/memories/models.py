@@ -98,8 +98,7 @@ class Memory(Base):
     memory_type: Mapped[str] = mapped_column(String(50), nullable=False)
     subject: Mapped[str] = mapped_column(String(255), nullable=False)
     predicate: Mapped[str] = mapped_column(String(255), nullable=False)
-    identity_subject: Mapped[str] = mapped_column(String(255), nullable=False)
-    identity_predicate: Mapped[str] = mapped_column(String(255), nullable=False)
+    identity_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     value_text: Mapped[str] = mapped_column(Text, nullable=False)
     value_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     summary: Mapped[str] = mapped_column(Text, nullable=False)
@@ -171,8 +170,7 @@ class Memory(Base):
             "user_id",
             "project_id",
             "memory_type",
-            "identity_subject",
-            "identity_predicate",
+            "identity_hash",
             "status",
         ),
         Index("ix_memories_expires_at", "expires_at"),

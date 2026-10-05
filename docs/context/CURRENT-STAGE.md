@@ -17,7 +17,7 @@ Milestone M3 established the semantic memory core and iOS memory control center 
 ### Delivered & Verified Deliverables:
 - [x] **10 Canonical Memory Types:** Strictly enforced across backend Pydantic models, SQLAlchemy models, and iOS client (`PERSONAL_FACT`, `PREFERENCE`, `INTEREST`, `SKILL`, `GOAL`, `BEHAVIOR_PATTERN`, `PROJECT_FACT`, `PROJECT_DECISION`, `PROJECT_PROGRESS`, `PROJECT_NEXT_ACTION`).
 - [x] **Project Scoping Invariants:** Project types require valid, user-owned `project_id`. Personal types forbid `project_id`. Cross-tenant project attachment safely rejected with 404.
-- [x] **NEVER_STORE Credential Safety:** Real-time regex pattern scanning rejects passwords, private keys, API keys, JWTs, OTPs, and recovery phrases without secret leakage. Zero false positives on benign text.
+- [x] **NEVER_STORE Credential Safety:** Real-time regex pattern scanning rejects passwords, private keys, API keys, JWTs, OTPs, and recovery phrases without secret leakage. No false positives observed in the current explicit benign test matrix.
 - [x] **Deterministic Deduplication & Superseding:** Writes serialized with `SELECT id FROM users FOR UPDATE`. Identical content returns existing ACTIVE memory. Conflicting values transition existing row to `SUPERSEDED` and record `superseded_by`.
 - [x] **pgvector Vector Storage & Cosine Search:** unconstrained `Vector()` embedding column with `<=>` cosine distance search. Decoupled behind `EmbeddingProvider` protocol; default production provider returns HTTP 503 per `TBD-004`.
 - [x] **Soft Forget & Expiration:** Idempotent `forget_memory` sets `FORGOTTEN`. Expired memories excluded from queries.
@@ -29,7 +29,7 @@ Milestone M3 established the semantic memory core and iOS memory control center 
   - `MemoriesListView.swift`, `CreateMemorySheet.swift`, `MemoryDetailView.swift`: SwiftUI views for browsing, filtering, searching, creating, editing, and forgetting memories.
   - `ContentView.swift`: Integrated Memories tab into main TabView navigation.
 - [x] **Target Compilation:** iOS target builds cleanly (`** BUILD SUCCEEDED **`); macOS agent builds cleanly (`Build complete!`).
-- [x] **Automated Tests:** 58/58 backend tests passing cleanly (21 dedicated M3 tests).
+- [x] **Automated Tests:** 59/59 backend tests passing cleanly (22 dedicated M3 tests).
 - [x] **Quality Tooling:** Ruff check, Ruff format check, and Mypy strict mode 100% passing.
-- [x] **Stage Documentation:** 12 canonical required stage files completed in  plus 2 supplemental review/remediation evidence files`docs/stages/phase-1/M3-memory-core/`.
-- [x] **Decision Registry:** Registered `TBD-004` in `docs/architecture/TBD-REGISTRY.md`.
+- [x] **Stage Documentation:** 12 canonical required stage files completed in `docs/stages/phase-1/M3-memory-core/` plus 2 supplemental review/remediation evidence files.
+- [x] **Decision Registry:** M3 consolidated embedding governance under existing `TBD-004`.
